@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import WorkoutGenerator from '@/components/WorkoutGenerator'
+export const dynamic = 'force-dynamic' 
+// This ensures that every time the user visits, it fetches a fresh profile from Supabase
 
 export default async function FitnessPage() {
   const supabase = await createClient()
