@@ -43,5 +43,6 @@ export const config = {
      * - favicon.ico (favicon file)
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/webhooks/stripe|_next/static|_next/image|favicon.ico).*)',
   ],
 }
