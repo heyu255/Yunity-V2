@@ -61,6 +61,22 @@ export async function POST(req: Request) {
       else console.log(`✅ User ${userId} updated with Customer ID ${customerId}`)
     }
   }
+  // Inside your existing Webhook POST function
+
+// Event: User cancelled their subscription or it expired
+if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object as Stripe.Subscription;
+    const customerId = subscription.customer as string;
+  
+    console.log(`📡 Revoking access for Customer: ${customerId}`);
+  
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .update({ is_premium: false })
+      .eq('stripe_customer_id', customerId);
+  
+    if (error) console.error("❌ Failed to revoke premium:", error.message);
+  }
 
   return NextResponse.json({ received: true })
 }
