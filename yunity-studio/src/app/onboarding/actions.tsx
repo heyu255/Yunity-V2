@@ -53,5 +53,5 @@ export async function completeOnboarding(formData: FormData) {
   }
 
   // Once finished, send them to the dashboard to see their stats
-  redirect('/dashboard')
+  redirect('/dashboard/nutrition')
 }
