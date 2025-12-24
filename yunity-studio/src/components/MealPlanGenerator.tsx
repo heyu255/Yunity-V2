@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Sparkles, Loader2, Utensils, Zap, Flame, Beef, Droplets } from 'lucide-react'
 
-export default function MealPlanGenerator({ calories }: { calories: number }) {
+export default function MealPlanGenerator({ calories, initialPlan }: { calories: number, initialPlan: any }) {
   const [loading, setLoading] = useState(false)
-  const [plan, setPlan] = useState<any>(null)
+  const [plan, setPlan] = useState(initialPlan)
 
   // Standard Macro Split (Carbs 40%, Protein 30%, Fats 30%)
   const macros = {
