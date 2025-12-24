@@ -3,7 +3,9 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 function redirectWithCookies(from: NextResponse, to: URL) {
   const redirectResponse = NextResponse.redirect(to)
-  redirectResponse.cookies.setAll(from.cookies.getAll())
+  from.cookies.getAll().forEach(({ name, value }) => {
+    redirectResponse.cookies.set(name, value)
+  })
   return redirectResponse
 }
 
