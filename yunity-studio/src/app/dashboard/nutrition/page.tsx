@@ -23,7 +23,7 @@ export default async function NutritionPage() {
     .select('id, name, created_at, plan')
     .order('created_at', { ascending: false })
     .limit(5)
-
+  const latestPlan = history && history.length > 0 ? history[0].plan : null;
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-20">
       {/* Header Section */}
@@ -37,7 +37,7 @@ export default async function NutritionPage() {
       </header>
 
       {/* Main AI Generator Component */}
-      <MealPlanGenerator calories={profile.daily_calories_target} />
+      <MealPlanGenerator calories={profile.daily_calories_target} initialPlan={latestPlan} />
 
       {/* Meal Plan History Section */}
       <section className="space-y-6">
