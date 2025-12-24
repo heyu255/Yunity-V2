@@ -1,4 +1,4 @@
-import { login, signup } from './actions'
+import { login, signUp } from './actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -43,7 +43,7 @@ export default async function LoginPage({
               <Button formAction={login} className="flex-1 bg-blue-600 hover:bg-blue-700">
                 Log In
               </Button>
-              <Button formAction={signup} variant="outline" className="flex-1">
+              <Button formAction={signUp} variant="outline" className="flex-1">
                 Sign Up
               </Button>
             </div>
