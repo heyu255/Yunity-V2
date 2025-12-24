@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LogOut, User, Ruler, Weight, Target, Activity } from 'lucide-react'
 import SubmitButton from '@/components/SubmitButton'
+import { createCustomerPortalSession } from '@/app/actions/stripe-portal'
 
 // Force the page to always fetch fresh data
 export const dynamic = 'force-dynamic'
@@ -112,10 +113,36 @@ export default async function AccountPage() {
               <SubmitButton className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-semibold shadow-lg shadow-blue-100 transition-all active:scale-[0.98]">
                 Save Changes
               </SubmitButton>
+
             </div>
           </CardContent>
         </Card>
       </form>
+      {profile?.is_premium && (
+  <Card className="shadow-md border-slate-200 overflow-hidden">
+    <CardHeader className="bg-slate-50/50 border-b">
+      <CardTitle className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+        Billing & Subscription
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="pt-6 flex items-center justify-between">
+      <div>
+        <p className="font-semibold text-slate-900">Manage your plan</p>
+        <p className="text-sm text-slate-500">Update payment methods or cancel your subscription.</p>
+      </div>
+      
+      <form action={createCustomerPortalSession}>
+        <Button 
+          type="submit" 
+          variant="outline" 
+          className="border-slate-300 hover:bg-slate-50 font-semibold"
+        >
+          Open Stripe Portal
+        </Button>
+      </form>
+    </CardContent>
+  </Card>
+)}
     </div>
   )
 }

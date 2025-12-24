@@ -41,19 +41,24 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.supabase_user_id
+    const customerId = session.customer as string // <-- Get the Stripe Customer ID
 
     if (userId) {
+
       console.log(`✅ Payment confirmed for user: ${userId}`)
       
       const { error } = await supabaseAdmin
         .from('profiles')
-        .update({ is_premium: true })
+        .update({ is_premium: true,
+            stripe_customer_id: customerId
+        })
         .eq('id', userId)
 
       if (error) {
         console.error('❌ Supabase Update Error:', error.message)
         return new NextResponse('Database update failed', { status: 500 })
       }
+      else console.log(`✅ User ${userId} updated with Customer ID ${customerId}`)
     }
   }
 
