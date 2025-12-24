@@ -37,7 +37,7 @@ export async function signup(formData: FormData) {
 
   if (error) {
     console.error('Signup Error:', error.message)
-    redirect('/login?error=Registration failed')
+    //redirect('/login?error=Registration failed')
   }
 
   // After signup, user usually needs to check email or can be auto-logged in
