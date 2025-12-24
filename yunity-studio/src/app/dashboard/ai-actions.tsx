@@ -82,8 +82,21 @@ export async function generateWorkoutPlan() {
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" }
     })
-  
-    return JSON.parse(response.choices[0].message.content || '{}')
+    const workoutData = JSON.parse(response.choices[0].message.content || '{}')
+    // 2. SAVE to the database
+    const { data: savedWorkout, error } = await supabase
+    .from('workouts')
+    .insert({
+      user_id: user.id,
+      name: `Workout for ${new Date().toLocaleDateString()}`,
+      plan: workoutData,
+    })
+    .select()
+    .single();
+
+  if (error) console.error("Error saving workout:", error.message);
+  return savedWorkout;
+
   }
   
   export async function updateProfile(formData: FormData) {
