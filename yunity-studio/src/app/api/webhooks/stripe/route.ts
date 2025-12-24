@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover', // Match your dashboard version
 })
@@ -10,18 +13,51 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Use Service Role Key to bypass RLS
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! 
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
 )
+
+async function setPremiumByUserId(userId: string, customerId: string) {
+  const { error } = await supabaseAdmin
+    .from('profiles')
+    .update({ is_premium: true, stripe_customer_id: customerId })
+    .eq('id', userId)
+
+  if (error) {
+    console.error('❌ Supabase update (by user id) failed:', error.message)
+    throw error
+  }
+
+  console.log(`✅ Premium granted for user ${userId}, customer ${customerId}`)
+}
+
+async function setPremiumByCustomerId(customerId: string, isActive: boolean) {
+  const { error } = await supabaseAdmin
+    .from('profiles')
+    .update({ is_premium: isActive })
+    .eq('stripe_customer_id', customerId)
+
+  if (error) {
+    console.error('❌ Supabase update (by customer id) failed:', error.message)
+    throw error
+  }
+
+  console.log(`✅ Premium ${isActive ? 'enabled' : 'revoked'} for customer ${customerId}`)
+}
 
 export async function POST(req: Request) {
   const body = await req.text() // Read the body ONCE
   const headersList = await headers()
-  
-  // FIX 1: Headers are normalized to lowercase in Vercel/Next.js
-  const signature = headersList.get('stripe-signature') 
+
+  const signature = headersList.get('stripe-signature')
 
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-    console.error("❌ Missing signature or webhook secret")
+    console.error('❌ Missing signature or webhook secret')
     return new NextResponse('Missing signature or secret', { status: 400 })
   }
 
@@ -38,44 +74,42 @@ export async function POST(req: Request) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 })
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
-    const userId = session.metadata?.supabase_user_id
-    const customerId = session.customer as string // <-- Get the Stripe Customer ID
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.supabase_user_id
+        const customerId = session.customer as string
 
-    if (userId) {
-
-      console.log(`✅ Payment confirmed for user: ${userId}`)
-      
-      const { error } = await supabaseAdmin
-        .from('profiles')
-        .update({ is_premium: true,
-            stripe_customer_id: customerId
-        })
-        .eq('id', userId)
-
-      if (error) {
-        console.error('❌ Supabase Update Error:', error.message)
-        return new NextResponse('Database update failed', { status: 500 })
+        if (userId && customerId) {
+          await setPremiumByUserId(userId, customerId)
+        } else {
+          console.warn('⚠️ Missing userId or customerId on checkout.session.completed', {
+            userId,
+            customerId,
+          })
+        }
+        break
       }
-      else console.log(`✅ User ${userId} updated with Customer ID ${customerId}`)
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription
+        const customerId = subscription.customer as string
+        const isActive = ['active', 'trialing', 'past_due'].includes(subscription.status)
+        await setPremiumByCustomerId(customerId, isActive)
+        break
+      }
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription
+        const customerId = subscription.customer as string
+        await setPremiumByCustomerId(customerId, false)
+        break
+      }
+      default:
+        console.log(`ℹ️ Unhandled event type: ${event.type}`)
     }
-  }
-  // Inside your existing Webhook POST function
-
-// Event: User cancelled their subscription or it expired
-if (event.type === 'customer.subscription.deleted') {
-    const subscription = event.data.object as Stripe.Subscription;
-    const customerId = subscription.customer as string;
-  
-    console.log(`📡 Revoking access for Customer: ${customerId}`);
-  
-    const { error } = await supabaseAdmin
-      .from('profiles')
-      .update({ is_premium: false })
-      .eq('stripe_customer_id', customerId);
-  
-    if (error) console.error("❌ Failed to revoke premium:", error.message);
+  } catch (err: any) {
+    return new NextResponse(`Handler Error: ${err.message}`, { status: 500 })
   }
 
   return NextResponse.json({ received: true })
