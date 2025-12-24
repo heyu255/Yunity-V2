@@ -42,11 +42,19 @@ const prompt = `
     response_format: { type: "json_object" }
   })
 
-  const plan = JSON.parse(response.choices[0].message.content || '{}')
+  const planData = JSON.parse(response.choices[0].message.content || '{}')
 
-  // 3. (Optional for now) You could save this to a 'meal_plans' table. 
-  // For the MVP, we will just return it to the UI.
-  return plan
+  // SAVE to database
+  const { error } = await supabase.from('meal_plans').insert({
+    user_id: user.id,
+    name: `Meal Plan for ${new Date().toLocaleDateString()}`,
+    plan: planData,
+  })
+
+  if (error) console.error("Error saving meal plan:", error.message)
+
+  revalidatePath('/dashboard/nutrition')
+  return planData
 
 }
 export async function generateWorkoutPlan() {
