@@ -1,10 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 
+function redirectWithCookies(from: NextResponse, to: URL) {
+  const redirectResponse = NextResponse.redirect(to)
+  redirectResponse.cookies.setAll(from.cookies.getAll())
+  return redirectResponse
+}
+
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,9 +20,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -27,38 +29,33 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // expose user id to outer middleware for redirect decisions
   if (user) {
     supabaseResponse.headers.set('x-user-id', user.id)
   }
 
- // 1. Check if the path is something we want to keep public
- const isHomePage = request.nextUrl.pathname === '/'
- const isLoginPage = request.nextUrl.pathname.startsWith('/login')
- const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+  const url = request.nextUrl.clone()
+  const isHomePage = url.pathname === '/'
+  const isLoginPage = url.pathname.startsWith('/login')
+  const isAuthPage = url.pathname.startsWith('/auth')
+  const isPublicRoute = isHomePage || isLoginPage || isAuthPage
+  const isProtectedRoute =
+    url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/onboarding')
 
- // 2. Only redirect if it's NOT a public page and there's no user
- if (!user && !isHomePage && !isLoginPage && !isAuthPage) {
-   const url = request.nextUrl.clone()
-   url.pathname = '/login'
-   return NextResponse.redirect(url)
- }
+  // Unauthenticated: send to login for protected/non-public routes
+  if (!user && (isProtectedRoute || !isPublicRoute)) {
+    url.pathname = '/login'
+    return redirectWithCookies(supabaseResponse, url)
+  }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object instead of the supabaseResponse object
+  // Authenticated: keep users out of the login page
+  if (user && isLoginPage) {
+    url.pathname = '/dashboard/nutrition'
+    return redirectWithCookies(supabaseResponse, url)
+  }
 
   return supabaseResponse
 }
