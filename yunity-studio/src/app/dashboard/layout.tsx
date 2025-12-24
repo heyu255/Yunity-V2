@@ -28,14 +28,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
             className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all font-semibold group"
           >
             <Utensils size={18} className="group-hover:scale-110 transition-transform" /> 
-            <span className="text-sm">AI Nutrition</span>
+            <span className="text-lg">AI Nutrition</span>
           </Link>
           <Link 
             href="/dashboard/fitness" 
             className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all font-semibold group"
           >
             <Dumbbell size={18} className="group-hover:scale-110 transition-transform" /> 
-            <span className="text-sm">AI Fitness Trainer</span>
+            <span className="text-lg">AI Fitness Trainer</span>
           </Link>
         </nav>
 
@@ -53,7 +53,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     {initials}
                  </span>
               </div>
-              <span className="text-sm">Account Settings</span>
+              <span className="text-base">Account Settings</span>
             </Link>
             
             {/* Logout Button */}
