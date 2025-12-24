@@ -50,54 +50,60 @@ const prompt = `
 
 }
 export async function generateWorkoutPlan() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-  
-    const { data: profile } = await supabase.from('profiles').select('*').single()
-    if (!profile || !profile.is_premium) throw new Error("PREMIUM_REQUIRED")
-  
-    const prompt = `
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase.from('profiles').select('*').single()
+  if (!profile || !profile.is_premium) throw new Error("PREMIUM_REQUIRED")
+
+  const prompt = `
       Act as a World-Class Personal Trainer. 
       Design a comprehensive 7-day workout split for a user aiming to ${profile.goal}.
       
       Return ONLY a JSON object with this structure:
       {
-        "split_name": "string (e.g. PPL, Upper/Lower)",
+        "split_name": "string",
         "days": [
           { 
-            "day": "Monday", 
-            "focus": "Target Muscle Groups", 
+            "day": "string", 
+            "focus": "string", 
             "exercises": [
-              { "name": "Exercise Name", "sets": 3, "reps": "10-12", "rest": "60s", "tip": "Form cue" }
+              { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
             ] 
-          },
-          ... (include all 7 days, use empty exercises array for Rest Days)
+          }
         ]
       }
     `
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" }
+  })
   
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }
-    })
-    const workoutData = JSON.parse(response.choices[0].message.content || '{}')
-    // 2. SAVE to the database
-    const { data: savedWorkout, error } = await supabase
+  const workoutData = JSON.parse(response.choices[0].message.content || '{}')
+
+  // 2. SAVE to the database
+  const { error } = await supabase
     .from('workouts')
     .insert({
       user_id: user.id,
       name: `Workout for ${new Date().toLocaleDateString()}`,
-      plan: workoutData,
+      plan: workoutData, // Saving the full JSON object
     })
-    .select()
-    .single();
 
-  if (error) console.error("Error saving workout:", error.message);
-  return savedWorkout;
-
+  if (error) {
+    console.error("Error saving workout:", error.message)
+    // We don't "throw" here so the user still gets their workout even if save fails
   }
+
+  // 3. Refresh the history list on the page
+  revalidatePath('/dashboard/fitness')
+
+  // 4. IMPORTANT: Return the workoutData (the AI JSON), NOT the database row
+  return workoutData
+}
   
   export async function updateProfile(formData: FormData) {
     const supabase = await createClient()
