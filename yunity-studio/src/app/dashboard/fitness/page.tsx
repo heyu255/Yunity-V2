@@ -20,9 +20,10 @@ export default async function FitnessPage() {
   // 2. Fetch Workout History (Top 5)
   const { data: history } = await supabase
     .from('workouts')
-    .select('id, name, created_at')
+    .select('id, name, created_at,plan')
     .order('created_at', { ascending: false })
     .limit(5)
+  const latestWorkout = history && history.length > 0 ? history[0].plan : null;
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-20">
@@ -44,7 +45,7 @@ export default async function FitnessPage() {
       </header>
 
       {/* Main Generator Component */}
-      <WorkoutGenerator isPremium={isPremium} goal={profile?.goal} />
+      <WorkoutGenerator isPremium={isPremium} goal={profile?.goal} initialPlan={latestWorkout} />
 
       {/* Workout History Section */}
       <section className="space-y-4">

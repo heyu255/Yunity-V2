@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Lock, Loader2, Dumbbell, Calendar, CheckCircle2 } from 'lucide-react'
 
-export default function WorkoutGenerator({ isPremium, goal }: { isPremium: boolean, goal: string }) {
+export default function WorkoutGenerator({ isPremium, goal, initialPlan }: { isPremium: boolean, goal: string, initialPlan: any }) {
   const [loading, setLoading] = useState(false)
-  const [plan, setPlan] = useState<any>(null)
+  const [plan, setPlan] = useState(initialPlan)
 
   async function handleGenerate() {
     setLoading(true)
