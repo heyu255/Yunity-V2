@@ -35,16 +35,22 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // expose user id to outer middleware for redirect decisions
+  if (user) {
+    supabaseResponse.headers.set('x-user-id', user.id)
   }
+
+ // 1. Check if the path is something we want to keep public
+ const isHomePage = request.nextUrl.pathname === '/'
+ const isLoginPage = request.nextUrl.pathname.startsWith('/login')
+ const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+
+ // 2. Only redirect if it's NOT a public page and there's no user
+ if (!user && !isHomePage && !isLoginPage && !isAuthPage) {
+   const url = request.nextUrl.clone()
+   url.pathname = '/login'
+   return NextResponse.redirect(url)
+ }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
