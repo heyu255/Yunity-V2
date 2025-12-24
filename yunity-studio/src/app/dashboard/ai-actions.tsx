@@ -130,4 +130,7 @@ export async function generateWorkoutPlan() {
       .eq('id', user.id)
   
     revalidatePath('/dashboard/account')
+    revalidatePath('/dashboard/nutrition')
+    revalidatePath('/dashboard/fitness')
+
   }
