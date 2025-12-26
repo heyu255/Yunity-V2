@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
+// Onboarding form: submits directly to the server action via the `action` prop.
 export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
@@ -13,6 +14,7 @@ export default function OnboardingPage() {
           <CardDescription>Tell us about yourself so we can calculate your targets.</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Server action binding: submitting this form calls completeOnboarding */}
           <form action={completeOnboarding} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

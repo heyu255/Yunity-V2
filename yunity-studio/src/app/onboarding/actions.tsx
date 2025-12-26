@@ -1,11 +1,12 @@
-'use server'
+'use server' // Server action entrypoint for onboarding submissions.
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
+// Handles onboarding form submissions and writes the initial profile.
 export async function completeOnboarding(formData: FormData) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser() // Auth gate
 
   if (!user) redirect('/login')
 

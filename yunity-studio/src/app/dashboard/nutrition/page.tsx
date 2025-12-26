@@ -5,6 +5,7 @@ import MealPlanGenerator from '@/components/MealPlanGenerator'
 import { Card, CardContent } from '@/components/ui/card'
 import { Utensils, ChevronRight, History, Calendar, Flame } from 'lucide-react'
 
+// Always fetch fresh data on each request (no static cache).
 export const dynamic = 'force-dynamic'
 
 export default async function NutritionPage() {
@@ -17,7 +18,7 @@ export default async function NutritionPage() {
   const { data: profile } = await supabase.from('profiles').select('*').single()
   if (!profile) redirect('/onboarding')
 
-  // 2. Fetch Recent Meal Plans (Top 5)
+  // 2. Fetch recent meal plans (Top 5) to show history + prime the generator
   const { data: history } = await supabase
     .from('meal_plans')
     .select('id, name, created_at, plan')

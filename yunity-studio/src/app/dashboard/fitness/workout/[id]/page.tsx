@@ -10,12 +10,14 @@ interface WorkoutPageProps {
 }
 
 export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
-  const { id } = await params
+  const { id } = await params // route param (workout id)
   const supabase = await createClient()
 
+  // Auth guard: must be logged in
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Fetch the workout by id
   const { data: workout, error } = await supabase
     .from('workouts')
     .select('*')

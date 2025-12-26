@@ -1,4 +1,4 @@
-'use client'
+'use client' // Client component: handles UI state and triggers server action
 
 import { useState } from 'react'
 import { generateMealPlan } from '@/app/dashboard/ai-actions'
@@ -8,15 +8,16 @@ import { Sparkles, Loader2, Utensils, Zap, Flame, Beef, Droplets } from 'lucide-
 
 export default function MealPlanGenerator({ calories, initialPlan }: { calories: number, initialPlan: any }) {
   const [loading, setLoading] = useState(false)
-  const [plan, setPlan] = useState(initialPlan)
+  const [plan, setPlan] = useState(initialPlan) // prefill with latest saved plan (or null)
 
-  // Standard Macro Split (Carbs 40%, Protein 30%, Fats 30%)
+  // Standard macro split (Carbs 40%, Protein 30%, Fats 30%) derived from calories
   const macros = {
     carbs: Math.round((calories * 0.4) / 4),
     protein: Math.round((calories * 0.3) / 4),
     fats: Math.round((calories * 0.3) / 9),
   }
 
+  // Calls the server action to fetch a fresh AI meal plan, then renders it.
   async function handleGenerate() {
     setLoading(true)
     const data = await generateMealPlan()
