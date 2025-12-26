@@ -1,5 +1,4 @@
 ---
-
 # YUNITY STUDIO – AI Performance Architect
 
 **Yunity Studio** is a premium, full-stack AI-driven Fitness and Nutrition SaaS designed for elite performance tracking. It leverages large language models to architect personalized 7-day workout splits and nutritional strategies based on real-time physiological metrics.
