@@ -52,7 +52,7 @@ We implement **Structured Prompting** to enforce JSON schema responses from Open
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/yunity-studio.git
+git clone https://github.com/heyu255/yunity-studio.git
 cd yunity-studio
 
 ```
@@ -103,11 +103,3 @@ This project is proprietary. All rights reserved by **Yunity Studio**.
 
 ---
 
-### **How to use this:**
-
-1. Create a file named `README.md` in your root folder.
-2. Copy and paste the content above.
-3. Replace `your-username` with your actual GitHub username.
-4. (Optional) Add a screenshot of your dashboard under the title for maximum impact.
-
-**Would you like me to help you write a "Technical Challenges" section for this README where we explain how we fixed the calorie-sync bug?** This shows recruiters you have great documentation skills.
