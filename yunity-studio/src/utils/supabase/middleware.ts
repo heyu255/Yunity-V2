@@ -51,7 +51,8 @@ export async function updateSession(request: NextRequest) {
   const isHomePage = url.pathname === '/'
   const isLoginPage = url.pathname.startsWith('/login')
   const isAuthPage = url.pathname.startsWith('/auth')
-  const isPublicRoute = isHomePage || isLoginPage || isAuthPage
+  const isResetPasswordPage = url.pathname.startsWith('/reset-password')
+  const isPublicRoute = isHomePage || isLoginPage || isAuthPage || isResetPasswordPage
   const isProtectedRoute =
     url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/onboarding')
 
