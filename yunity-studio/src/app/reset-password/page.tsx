@@ -46,42 +46,47 @@ export default async function ResetPasswordPage({
   const { data: { user } } = await supabase.auth.getUser()
   
   // If there's a code parameter and no user, we need to handle it
-  // Supabase password reset can use either hash fragments (#access_token=...) or codes
-  // If using codes, we need to verify them properly
+  // NOTE: Supabase password reset SHOULD use hash fragments (#access_token=...&type=recovery)
+  // If you're getting ?code=... instead, your Supabase project is misconfigured
+  // Password reset doesn't support PKCE, so code-based flows will fail
   if (params?.code && !user) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
     
+    // Log the full response for debugging
+    console.error('Password reset code exchange result:', {
+      hasError: !!error,
+      errorMessage: error?.message,
+      errorStatus: error?.status,
+      errorCode: error?.code,
+      hasSession: !!data?.session,
+      hasUser: !!data?.user
+    })
+    
     if (error) {
-      // Log the actual error for debugging
-      console.error('Password reset code exchange error:', {
-        message: error.message,
-        status: error.status,
-        code: error.code
-      })
-      
       // If it's a PKCE error, the code verifier isn't available
       // This means Supabase is configured to use PKCE but password reset doesn't support it
-      // The solution is to configure Supabase to use hash fragments instead of query codes
       if (error.message?.includes('PKCE') || error.message?.includes('code verifier')) {
-        redirect('/login?error=Password reset link format not supported. Your Supabase project needs to be configured to use hash fragments (#access_token) instead of query codes. Please contact support.')
+        redirect('/login?error=Password reset links must use hash fragments (#access_token), not query codes. Please configure Supabase to use hash fragments for password reset.')
       } else {
         redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
       }
     }
     
-    if (data?.session) {
-      // Session established successfully - verify user exists
-      const { data: { user: newUser } } = await supabase.auth.getUser()
-      
-      if (!newUser) {
-        redirect('/login?error=Failed to establish session')
-      }
-      // If newUser exists, continue rendering the page normally
-      // The session is now established and the form will be enabled
-    } else {
-      // No session returned
-      redirect('/login?error=Failed to establish session. Please try again.')
+    if (!data?.session) {
+      // No session returned - this shouldn't happen if exchange succeeded
+      // But it can happen if Supabase is misconfigured
+      console.error('Code exchange succeeded but no session returned. This indicates a Supabase configuration issue.')
+      redirect('/login?error=Failed to verify reset link. Your Supabase project may be misconfigured. Password reset should use hash fragments (#access_token), not query codes (?code=).')
     }
+    
+    // Session established successfully - verify user exists
+    const { data: { user: newUser } } = await supabase.auth.getUser()
+    
+    if (!newUser) {
+      redirect('/login?error=Failed to establish session')
+    }
+    // If newUser exists, continue rendering the page normally
+    // The session is now established and the form will be enabled
   }
   
   return (
