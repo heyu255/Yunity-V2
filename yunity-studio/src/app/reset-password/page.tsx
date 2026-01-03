@@ -45,27 +45,34 @@ export default async function ResetPasswordPage({
   // Note: Session might be established client-side via hash fragments or code exchange
   const { data: { user } } = await supabase.auth.getUser()
   
-  // If there's a code parameter and no user, try to exchange it server-side
+  // If there's a code parameter and no user, exchange it server-side
+  // This must be done server-side to properly handle PKCE code verifier in cookies
   if (params?.code && !user) {
     try {
       const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
-      if (!error && data?.session) {
-        // Session established - cookies are set, now get the user
-        // Create a new client to get fresh user data with the new session
-        const newSupabase = await createClient()
-        const { data: { user: newUser } } = await newSupabase.auth.getUser()
-        
-        if (newUser) {
-          // Session is valid, redirect to clean URL (cookies are already set)
-          redirect('/reset-password')
-        }
-      } else if (error) {
-        // If exchange fails, redirect to login with error
+      
+      if (error) {
+        // Exchange failed - redirect to login with error
         redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
       }
+      
+      if (data?.session) {
+        // Session established successfully - cookies are now set
+        // Get the user to verify session
+        const { data: { user: newUser } } = await supabase.auth.getUser()
+        
+        if (newUser) {
+          // Session is valid, redirect to clean URL without code parameter
+          redirect('/reset-password')
+        } else {
+          // Session exists but no user - something went wrong
+          redirect('/login?error=Failed to establish session')
+        }
+      }
     } catch (err) {
-      // If exchange fails, let client component handle it as fallback
-      // Don't redirect here - let the client component try
+      // Unexpected error during exchange
+      console.error('Code exchange error:', err)
+      redirect('/login?error=Failed to verify reset link. Please try again.')
     }
   }
   
