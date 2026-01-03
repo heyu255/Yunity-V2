@@ -36,18 +36,39 @@ async function resetPassword(formData: FormData) {
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; code?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
   
   // Check if user has a valid session (from the reset link)
-  // Note: Session might be established client-side via hash fragments
+  // Note: Session might be established client-side via hash fragments or code exchange
   const { data: { user } } = await supabase.auth.getUser()
   
-  // If no user and no error param, show a message (session might be establishing)
-  const showForm = user || params?.error
-
+  // If there's a code parameter and no user, try to exchange it server-side
+  if (params?.code && !user) {
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
+      if (!error && data?.session) {
+        // Session established - cookies are set, now get the user
+        // Create a new client to get fresh user data with the new session
+        const newSupabase = await createClient()
+        const { data: { user: newUser } } = await newSupabase.auth.getUser()
+        
+        if (newUser) {
+          // Session is valid, redirect to clean URL (cookies are already set)
+          redirect('/reset-password')
+        }
+      } else if (error) {
+        // If exchange fails, redirect to login with error
+        redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
+      }
+    } catch (err) {
+      // If exchange fails, let client component handle it as fallback
+      // Don't redirect here - let the client component try
+    }
+  }
+  
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
       <PasswordResetHandler />
@@ -69,54 +90,48 @@ export default async function ResetPasswordPage({
                 </p>
               </div>
             )}
-            {!user && !params?.error && (
+            {!user && !params?.error && params?.code && (
               <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 mt-4">
                 <p className="text-sm text-blue-600 text-center font-bold">
-                  Establishing secure connection...
+                  Verifying reset link... Please wait a moment.
                 </p>
               </div>
             )}
           </CardHeader>
           
           <CardContent>
-            {showForm ? (
-              <form action={resetPassword} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-700 font-bold ml-1">New Password</Label>
-                  <Input 
-                    id="password" 
-                    name="password" 
-                    type="password" 
-                    required 
-                    minLength={6}
-                    className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-slate-700 font-bold ml-1">Confirm Password</Label>
-                  <Input 
-                    id="confirmPassword" 
-                    name="confirmPassword" 
-                    type="password" 
-                    required 
-                    minLength={6}
-                    className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                  />
-                </div>
-
-                <Button 
-                  type="submit"
-                  className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100"
-                >
-                  Reset Password
-                </Button>
-              </form>
-            ) : (
-              <div className="py-8 text-center">
-                <p className="text-slate-500 text-sm">Please wait while we verify your reset link...</p>
+            <form action={resetPassword} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-700 font-bold ml-1">New Password</Label>
+                <Input 
+                  id="password" 
+                  name="password" 
+                  type="password" 
+                  required 
+                  minLength={6}
+                  className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                />
               </div>
-            )}
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-slate-700 font-bold ml-1">Confirm Password</Label>
+                <Input 
+                  id="confirmPassword" 
+                  name="confirmPassword" 
+                  type="password" 
+                  required 
+                  minLength={6}
+                  className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                />
+              </div>
+
+              <Button 
+                type="submit"
+                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100"
+              >
+                Reset Password
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
