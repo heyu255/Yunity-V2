@@ -49,8 +49,17 @@ export function PasswordResetHandler() {
           newUrl.searchParams.delete('code')
           window.history.replaceState(null, '', newUrl.pathname + newUrl.search)
           router.refresh()
+        } else {
+          // No session after code exchange - this means it failed
+          // The server should have redirected, but if we're still here, redirect manually
+          // This handles cases where the server redirect didn't work immediately
+          setTimeout(() => {
+            // Check one more time if we're still on this page with a code
+            if (window.location.search.includes('code=') && !session) {
+              router.push('/login?error=Failed to verify reset link. Please request a new password reset.')
+            }
+          }, 1000)
         }
-        // If no session, the server-side code will handle the error and redirect
       })
     }
   }, [router, searchParams])

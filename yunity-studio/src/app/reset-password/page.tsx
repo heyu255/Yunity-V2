@@ -61,8 +61,9 @@ export default async function ResetPasswordPage({
       
       // If it's a PKCE error, the code verifier isn't available
       // This means Supabase is configured to use PKCE but password reset doesn't support it
+      // The solution is to configure Supabase to use hash fragments instead of query codes
       if (error.message?.includes('PKCE') || error.message?.includes('code verifier')) {
-        redirect('/login?error=Reset link configuration error. Please contact support or try requesting a new password reset link.')
+        redirect('/login?error=Password reset link format not supported. Your Supabase project needs to be configured to use hash fragments (#access_token) instead of query codes. Please contact support.')
       } else {
         redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
       }
