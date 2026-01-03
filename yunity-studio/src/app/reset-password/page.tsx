@@ -45,34 +45,49 @@ export default async function ResetPasswordPage({
   // Note: Session might be established client-side via hash fragments or code exchange
   const { data: { user } } = await supabase.auth.getUser()
   
-  // If there's a code parameter and no user, exchange it server-side
-  // This must be done server-side to properly handle PKCE code verifier in cookies
+  // If there's a code parameter and no user, we need to handle it
+  // Note: Supabase password reset typically uses hash fragments (#access_token=...)
+  // Query parameters with codes are used for PKCE flows which require code verifier in cookies
+  // Since password reset doesn't use PKCE, if we get a code, it might be misconfigured
+  // We'll let the client component handle hash fragments, and only handle code here as fallback
   if (params?.code && !user) {
+    // For password reset, Supabase should send hash fragments, not query codes
+    // If we're getting a code parameter, it might be from a different flow
+    // Try to exchange it, but this will likely fail for password reset
     try {
       const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
       
       if (error) {
-        // Exchange failed - redirect to login with error
-        redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
+        // Log the actual error for debugging
+        console.error('Password reset code exchange error:', {
+          message: error.message,
+          status: error.status,
+          code: error.code
+        })
+        
+        // PKCE errors mean the code verifier isn't in cookies
+        // This happens because password reset doesn't use PKCE
+        // The user needs to request a new reset link
+        if (error.message?.includes('PKCE') || error.message?.includes('code verifier')) {
+          redirect('/login?error=Reset link expired. This can happen if the link was preloaded by your email client. Please request a new password reset link.')
+        } else {
+          redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
+        }
       }
       
       if (data?.session) {
-        // Session established successfully - cookies are now set
-        // Get the user to verify session
+        // Session established successfully
         const { data: { user: newUser } } = await supabase.auth.getUser()
         
         if (newUser) {
-          // Session is valid, redirect to clean URL without code parameter
           redirect('/reset-password')
         } else {
-          // Session exists but no user - something went wrong
           redirect('/login?error=Failed to establish session')
         }
       }
     } catch (err) {
-      // Unexpected error during exchange
-      console.error('Code exchange error:', err)
-      redirect('/login?error=Failed to verify reset link. Please try again.')
+      console.error('Unexpected code exchange error:', err)
+      redirect('/login?error=Failed to verify reset link. Please request a new password reset.')
     }
   }
   

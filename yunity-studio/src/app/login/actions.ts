@@ -33,6 +33,8 @@ export async function forgotPassword(formData: FormData) {
   
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${baseUrl}/reset-password`,
+    // Ensure Supabase uses hash fragments (default) instead of query parameters
+    // This avoids PKCE code verifier issues
   })
 
   if (error) {
