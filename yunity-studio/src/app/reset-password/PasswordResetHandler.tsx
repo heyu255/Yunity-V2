@@ -37,14 +37,21 @@ export function PasswordResetHandler() {
       return
     }
 
-    // Method 2: If there's a code parameter, the page will reload after server-side exchange
-    // Just wait for the server to handle it - don't try to exchange client-side
-    // as it will fail with PKCE errors
+    // Method 2: If there's a code parameter, check if session was established
+    // If session exists, clean up the URL by removing the code parameter
     const code = searchParams.get('code')
     if (code) {
-      // Server-side exchange should handle this, but if we're still here,
-      // it means the server exchange failed. The server will redirect with an error.
-      // We don't need to do anything here - the server-side code will handle it.
+      // Check if we have a session (server-side exchange succeeded)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          // Session was established - clean up URL by removing code parameter
+          const newUrl = new URL(window.location.href)
+          newUrl.searchParams.delete('code')
+          window.history.replaceState(null, '', newUrl.pathname + newUrl.search)
+          router.refresh()
+        }
+        // If no session, the server-side code will handle the error and redirect
+      })
     }
   }, [router, searchParams])
 

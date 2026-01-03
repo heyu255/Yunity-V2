@@ -49,49 +49,37 @@ export default async function ResetPasswordPage({
   // Supabase password reset can use either hash fragments (#access_token=...) or codes
   // If using codes, we need to verify them properly
   if (params?.code && !user) {
-    try {
-      // First, try to get the email from the code by attempting verification
-      // We'll need to extract email from the URL or try verifyOtp
-      // Actually, for password reset codes, we should use verifyOtp with type 'recovery'
-      // But we need the email... Let's try exchangeCodeForSession first
+    const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
+    
+    if (error) {
+      // Log the actual error for debugging
+      console.error('Password reset code exchange error:', {
+        message: error.message,
+        status: error.status,
+        code: error.code
+      })
       
-      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
-      
-      if (error) {
-        // Log the actual error for debugging
-        console.error('Password reset code exchange error:', {
-          message: error.message,
-          status: error.status,
-          code: error.code
-        })
-        
-        // If it's a PKCE error, the code verifier isn't available
-        // This means Supabase is configured to use PKCE but password reset doesn't support it
-        if (error.message?.includes('PKCE') || error.message?.includes('code verifier')) {
-          redirect('/login?error=Reset link configuration error. Please contact support or try requesting a new password reset link.')
-        } else {
-          redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
-        }
-      }
-      
-      if (data?.session) {
-        // Session established successfully
-        const { data: { user: newUser } } = await supabase.auth.getUser()
-        
-        if (newUser) {
-          // Redirect to clean URL without code parameter
-          redirect('/reset-password')
-        } else {
-          redirect('/login?error=Failed to establish session')
-        }
+      // If it's a PKCE error, the code verifier isn't available
+      // This means Supabase is configured to use PKCE but password reset doesn't support it
+      if (error.message?.includes('PKCE') || error.message?.includes('code verifier')) {
+        redirect('/login?error=Reset link configuration error. Please contact support or try requesting a new password reset link.')
       } else {
-        // No session returned
-        redirect('/login?error=Failed to establish session. Please try again.')
+        redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
       }
-    } catch (err) {
-      console.error('Unexpected code exchange error:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-      redirect(`/login?error=${encodeURIComponent(`Failed to verify reset link: ${errorMessage}. Please request a new password reset.`)}`)
+    }
+    
+    if (data?.session) {
+      // Session established successfully - verify user exists
+      const { data: { user: newUser } } = await supabase.auth.getUser()
+      
+      if (!newUser) {
+        redirect('/login?error=Failed to establish session')
+      }
+      // If newUser exists, continue rendering the page normally
+      // The session is now established and the form will be enabled
+    } else {
+      // No session returned
+      redirect('/login?error=Failed to establish session. Please try again.')
     }
   }
   
