@@ -32,11 +32,8 @@ export async function forgotPassword(formData: FormData) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${baseUrl}/reset-password`,
-    // Note: Supabase should use hash fragments (#access_token=...) by default
-    // If you're getting ?code=... instead, check Supabase dashboard settings:
-    // 1. Authentication → URL Configuration → Add redirect URL
-    // 2. Check if PKCE is enabled globally (should be disabled for password reset)
+    // Redirect to callback route which will handle code exchange and then redirect to reset-password
+    redirectTo: `${baseUrl}/auth/callback?next=/reset-password`,
   })
 
   if (error) {
