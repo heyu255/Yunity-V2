@@ -15,13 +15,18 @@ export default async function NutritionPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('profiles').select('*').single()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
   if (!profile) redirect('/onboarding')
 
   // 2. Fetch recent meal plans (Top 5) to show history + prime the generator
   const { data: history } = await supabase
     .from('meal_plans')
     .select('id, name, created_at, plan')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
   const latestPlan = history && history.length > 0 ? history[0].plan : null;

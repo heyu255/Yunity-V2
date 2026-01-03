@@ -14,13 +14,18 @@ export default async function FitnessPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('profiles').select('*').single()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
   const isPremium = profile?.is_premium ?? false
 
   // 2. Fetch Workout History (Top 5)
   const { data: history } = await supabase
     .from('workouts')
     .select('id, name, created_at,plan')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5)
   const latestWorkout = history && history.length > 0 ? history[0].plan : null;

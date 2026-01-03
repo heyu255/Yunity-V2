@@ -17,11 +17,12 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Fetch the workout by id
+  // Fetch the workout by id and user_id (security: users can only access their own workouts)
   const { data: workout, error } = await supabase
     .from('workouts')
     .select('*')
     .eq('id', id)
+    .eq('user_id', user.id)
     .single()
 
   if (error || !workout) notFound()

@@ -15,6 +15,7 @@ export async function generateMealPlan() {
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
+    .eq('id', user.id)
     .single()
 
   if (!profile) return
@@ -62,7 +63,11 @@ export async function generateWorkoutPlan() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
-  const { data: profile } = await supabase.from('profiles').select('*').single()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
   if (!profile || !profile.is_premium) throw new Error("PREMIUM_REQUIRED")
 
   const prompt = `

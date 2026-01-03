@@ -20,6 +20,7 @@ export default async function MealPlanDetailPage({ params }: MealPlanPageProps) 
     .from('meal_plans')
     .select('*')
     .eq('id', id)
+    .eq('user_id', user.id)
     .single()
 
   if (error || !mp) notFound()
