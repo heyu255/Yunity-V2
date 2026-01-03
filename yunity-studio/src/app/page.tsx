@@ -1,8 +1,30 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, CheckCircle2, Zap, Shield, Sparkles } from 'lucide-react'
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function LandingPage() {
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>
+}) {
+  const params = await searchParams
+  
+  // Handle password reset code from Supabase email
+  if (params?.code) {
+    const supabase = await createClient()
+    
+    // Exchange the code for a session
+    const { error } = await supabase.auth.exchangeCodeForSession(params.code)
+    
+    if (!error) {
+      // Successfully exchanged code for session, redirect to reset password page
+      redirect('/reset-password')
+    }
+    // If there's an error, just continue to show the landing page
+  }
+
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans">
       {/* --- NAVIGATION --- */}

@@ -28,8 +28,11 @@ export async function forgotPassword(formData: FormData) {
   const email = formData.get('email') as string
   const supabase = await createClient()
   
+  // Use the correct base URL (check both env vars for compatibility)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`,
+    redirectTo: `${baseUrl}/reset-password`,
   })
 
   if (error) {
