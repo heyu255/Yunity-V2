@@ -12,17 +12,25 @@ export default async function LandingPage({
   const params = await searchParams
   
   // Handle password reset code from Supabase email
+  // Supabase sometimes sends the code as a query parameter instead of hash fragment
   if (params?.code) {
     const supabase = await createClient()
     
-    // Exchange the code for a session
-    const { error } = await supabase.auth.exchangeCodeForSession(params.code)
-    
-    if (!error) {
-      // Successfully exchanged code for session, redirect to reset password page
-      redirect('/reset-password')
+    try {
+      // Exchange the code for a session
+      const { data, error } = await supabase.auth.exchangeCodeForSession(params.code)
+      
+      if (!error && data?.session) {
+        // Successfully exchanged code for session, redirect to reset password page
+        redirect('/reset-password')
+      } else if (error) {
+        // If code exchange fails, redirect to login with error
+        redirect(`/login?error=${encodeURIComponent(error.message || 'Invalid or expired reset link')}`)
+      }
+    } catch (err) {
+      // If anything goes wrong, redirect to login
+      redirect('/login?error=Invalid or expired reset link')
     }
-    // If there's an error, just continue to show the landing page
   }
 
   return (
