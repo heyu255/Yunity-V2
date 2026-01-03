@@ -1,4 +1,4 @@
-import { login, signUp } from './actions'
+import { login, signUp, forgotPassword } from './actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +9,7 @@ import Link from 'next/link'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; message?: string }>
 }) {
   const params = await searchParams
 
@@ -92,10 +92,17 @@ export default async function LoginPage({
                   </p>
                 </div>
               )}
+              {params?.message && (
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 animate-in fade-in slide-in-from-top-2">
+                  <p className="text-sm text-emerald-600 text-center font-bold">
+                    {params.message}
+                  </p>
+                </div>
+              )}
             </CardHeader>
             
             <CardContent>
-              <form className="space-y-5">
+              <form id="login-form" className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-slate-700 font-bold ml-1">Email</Label>
                   <Input 
@@ -111,7 +118,11 @@ export default async function LoginPage({
                 <div className="space-y-2">
                   <div className="flex justify-between items-center ml-1">
                     <Label htmlFor="password" className="text-slate-700 font-bold">Password</Label>
-                    <button type="button" className="text-xs font-bold text-indigo-600 hover:text-indigo-500">
+                    <button 
+                      type="submit"
+                      formAction={forgotPassword}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors"
+                    >
                       Forgot?
                     </button>
                   </div>
@@ -119,7 +130,6 @@ export default async function LoginPage({
                     id="password" 
                     name="password" 
                     type="password" 
-                    required 
                     className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
                 </div>

@@ -24,6 +24,23 @@ export async function login(formData: FormData) {
   redirect('/dashboard/nutrition')
 }
 
+export async function forgotPassword(formData: FormData) {
+  const email = formData.get('email') as string
+  const supabase = await createClient()
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`,
+  })
+
+  if (error) {
+    console.error('Password Reset Error:', error.message)
+    return redirect(`/login?error=${encodeURIComponent(error.message)}`)
+  }
+
+  // Success: Redirect back with a message to check their email
+  return redirect('/login?message=Check your email for the password reset link')
+}
+
 export async function signUp(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
