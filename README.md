@@ -2,7 +2,7 @@
 
 **Yunity Studio** is a premium, full-stack AI-driven Fitness and Nutrition SaaS designed for elite performance tracking. It leverages large language models to architect personalized 7-day workout splits and nutritional strategies based on real-time physiological metrics.
 
-** https://yunity-v2.vercel.app/**
+**https://yunity-v2.vercel.app/**
 
 <img width="1743" height="814" alt="屏幕截图 2025-12-26 001905" src="https://github.com/user-attachments/assets/8ba75443-88b0-4537-9f92-f593d4e8d4d4" />
 <img width="1231" height="899" alt="屏幕截图 2025-12-26 001917" src="https://github.com/user-attachments/assets/52e8495a-c717-4efe-b21c-01091fed982f" />
