@@ -53,6 +53,11 @@ export async function completeOnboarding(formData: FormData) {
     redirect('/error')
   }
 
+  await supabase.from('weight_entries').insert({
+    user_id: user.id,
+    weight,
+  })
+
   // Once finished, send them to the dashboard to see their stats
   redirect('/dashboard/nutrition')
 }

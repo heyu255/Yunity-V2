@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LogOut, User, Ruler, Weight, Target, Activity } from 'lucide-react'
+import { LogOut, User, Ruler, Weight, Target, Activity, TrendingUp } from 'lucide-react'
 import SubmitButton from '@/components/SubmitButton'
 import { createCustomerPortalSession } from '@/app/actions/stripe-portal'
+import WeightTrendChart from './weight-trend-chart'
 
 // Force the page to always fetch fresh data
 export const dynamic = 'force-dynamic'
@@ -23,6 +24,13 @@ export default async function AccountPage() {
     .select('*')
     .eq('id', user.id)
     .single()
+
+  const { data: weightEntries } = await supabase
+    .from('weight_entries')
+    .select('weight, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true })
+    .limit(365)
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-10">
@@ -147,6 +155,19 @@ export default async function AccountPage() {
     </CardContent>
   </Card>
 )}
+      <Card className="shadow-md border-slate-200">
+        <CardHeader className="bg-slate-50/50 border-b">
+          <CardTitle className="flex items-center gap-2 text-blue-600">
+            <TrendingUp size={20} /> Weight Progress Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <WeightTrendChart
+            entries={(weightEntries ?? []) as Array<{ weight: number; created_at: string }>}
+            goal={profile?.goal}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
