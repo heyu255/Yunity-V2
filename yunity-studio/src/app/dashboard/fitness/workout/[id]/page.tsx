@@ -33,7 +33,7 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
     <div className="max-w-4xl mx-auto space-y-8 pb-20 px-4">
       {/* Navigation */}
       <Link href="/dashboard/fitness">
-        <Button variant="ghost" className="gap-2 text-slate-500 hover:text-indigo-600 pl-0">
+        <Button variant="ghost" className="gap-2 pl-0 text-slate-500 hover:text-slate-900">
           <ChevronLeft size={16} /> Back to Trainer
         </Button>
       </Link>
@@ -60,7 +60,7 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
             <section key={dayIdx} className="space-y-6">
               {/* Day Header */}
               <div className="flex items-center gap-4">
-                <div className="h-8 w-1 bg-indigo-600 rounded-full" />
+                <div className="h-8 w-1 rounded-full bg-slate-700" />
                 <h2 className="text-2xl font-bold text-slate-900">{day.day}</h2>
                 <span className="text-slate-400 font-medium">— {day.focus}</span>
               </div>
@@ -68,20 +68,20 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
               <div className="grid gap-4">
                 {day.exercises && day.exercises.length > 0 ? (
                   day.exercises.map((ex: any, exIdx: number) => (
-                    <Card key={exIdx} className="border-slate-200 shadow-sm overflow-hidden hover:border-indigo-200 transition-colors">
+                    <Card key={exIdx} className="overflow-hidden border-slate-200 shadow-sm transition-colors hover:border-slate-300">
                       <CardHeader className="bg-slate-50/50 py-4 flex flex-row items-center justify-between border-b">
                         <CardTitle className="text-lg font-bold flex items-center gap-3">
                           <div className="bg-white p-1.5 rounded-md border shadow-sm">
-                            <Dumbbell size={18} className="text-indigo-600" />
+                            <Dumbbell size={18} className="text-slate-700" />
                           </div>
                           {ex.name}
                         </CardTitle>
                         <div className="flex gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
                           <span className="bg-white border px-2 py-1 rounded-md flex items-center gap-1">
-                            <ListChecks size={14} className="text-indigo-500" /> {ex.sets} Sets × {ex.reps}
+                            <ListChecks size={14} className="text-slate-500" /> {ex.sets} Sets × {ex.reps}
                           </span>
                           <span className="bg-white border px-2 py-1 rounded-md flex items-center gap-1">
-                            <Clock size={14} className="text-indigo-500" /> {ex.rest} Rest
+                            <Clock size={14} className="text-slate-500" /> {ex.rest} Rest
                           </span>
                         </div>
                       </CardHeader>

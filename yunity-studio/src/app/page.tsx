@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, CheckCircle2, Zap, Shield, Sparkles } from 'lucide-react'
-import { createClient } from '@/utils/supabase/server'
+import { ArrowRight, CheckCircle2, Dumbbell, ShieldCheck } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
 export default async function LandingPage({
@@ -20,186 +19,173 @@ export default async function LandingPage({
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans">
-      {/* --- NAVIGATION --- */}
-      <nav className="flex items-center justify-between px-6 py-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="bg-blue-600 p-1.5 rounded-lg">
-            <Zap className="text-white" size={20} fill="currentColor" />
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-2">
+            <Dumbbell className="text-slate-800" size={18} />
           </div>
-          <span className="text-xl font-bold tracking-tight">Yunity<span className="text-blue-600">Studio</span></span>
+          <span className="text-lg font-semibold tracking-tight">Yunity Studio</span>
         </div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-          <Link href="#features" className="hover:text-blue-600 transition-colors">Features</Link>
-          <Link href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</Link>
-          <Link href="/login" className="hover:text-blue-600 transition-colors">Log In</Link>
-          <Button asChild className="bg-blue-600 hover:bg-blue-700 rounded-full px-6">
+        <div className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
+          <Link href="#features" className="transition-colors hover:text-slate-900">Features</Link>
+          <Link href="#pricing" className="transition-colors hover:text-slate-900">Pricing</Link>
+          <Link href="/login" className="transition-colors hover:text-slate-900">Log in</Link>
+          <Button asChild className="rounded-full bg-slate-900 px-6 text-white hover:bg-slate-800">
             <Link href="/login">Get Started</Link>
           </Button>
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative pt-20 pb-32 overflow-hidden">
-        {/* Background Decoration */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-50 rounded-full blur-[120px] opacity-60" />
-          <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-50 rounded-full blur-[100px] opacity-60" />
+      <section className="relative overflow-hidden pb-24 pt-16">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute left-1/2 top-0 h-[420px] w-[780px] -translate-x-1/2 rounded-full bg-gradient-to-b from-white to-slate-100 blur-2xl" />
         </div>
-
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full mb-8 animate-fade-in">
-            <Sparkles size={14} className="text-blue-600" />
-            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">AI-Powered Fitness is here</span>
+        <div className="mx-auto max-w-7xl px-6 text-center">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600">
+            Focused fitness. Minimal noise.
           </div>
-          
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6">
-            Your Personal Trainer, <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">
-              Reimagined with AI.
-            </span>
+
+          <h1 className="mb-6 text-5xl font-semibold tracking-tight text-slate-900 md:text-7xl">
+            A clean way to plan
+            <br />
+            training and nutrition.
           </h1>
-          
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-500 mb-10 leading-relaxed">
-            Stop guessing your macros and workouts. Yunity Studio builds custom 7-day performance splits and nutrition targets tailored to your DNA and goals.
+
+          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-slate-600 md:text-xl">
+            Yunity Studio helps you set goals, follow a weekly plan, and track real progress without clutter.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 h-14 px-8 text-lg rounded-full shadow-xl shadow-blue-200 transition-all hover:scale-105">
+            <Button asChild size="lg" className="h-14 rounded-full bg-slate-900 px-8 text-lg text-white shadow-lg transition-all hover:bg-slate-800">
               <Link href="/login">
-                Start Your Transformation <ArrowRight className="ml-2" size={20} />
+                Start Free <ArrowRight className="ml-2" size={20} />
               </Link>
             </Button>
-            <Button variant="ghost" size="lg" className="h-14 px-8 text-lg rounded-full text-slate-600">
-              View Sample Plan
+            <Button variant="outline" size="lg" className="h-14 rounded-full border-slate-300 px-8 text-lg text-slate-700 hover:bg-white">
+              See How It Works
             </Button>
           </div>
 
-          {/* Social Proof / Trust Badges */}
-          <div className="mt-16 flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale">
-             <div className="font-bold text-xl text-slate-400 italic underline decoration-blue-500">STRIPE SECURE</div>
-             <div className="font-bold text-xl text-slate-400 uppercase tracking-tighter">OpenAI Intelligence</div>
-             <div className="font-bold text-xl text-slate-400">SUPABASE DB</div>
+          <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
+            <span className="rounded-full border border-slate-200 bg-white px-4 py-1.5">Weekly plans</span>
+            <span className="rounded-full border border-slate-200 bg-white px-4 py-1.5">Progress tracking</span>
+            <span className="rounded-full border border-slate-200 bg-white px-4 py-1.5">Secure billing</span>
           </div>
         </div>
       </section>
-      {/* --- FEATURES SECTION --- */}
-      <section id="features" className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Precision Engineering for your Body</h2>
-            <p className="text-slate-500 max-w-xl mx-auto">Everything you need to hit your goals, powered by the most advanced AI models on earth.</p>
+
+      <section id="features" className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-14 text-center">
+            <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-5xl">Built for consistency</h2>
+            <p className="mx-auto max-w-2xl text-slate-600">
+              Everything you need to train with structure, eat with intention, and stay on track week after week.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid gap-6 md:grid-cols-3">
             {[
-              { 
-                title: "AI Workout Architect", 
-                desc: "Get 7-day splits with exact sets, reps, and rest times. No more generic PDF plans.",
-                icon: <Zap className="text-blue-600" /> 
+              {
+                title: 'Structured weekly training',
+                desc: 'Follow clear workouts with sets, reps, and progression built around your goal.',
+                icon: <Dumbbell className="text-slate-700" size={18} />
               },
-              { 
-                title: "Dynamic Nutrition", 
-                desc: "We calculate your TDEE and macros in real-time. Change your goal, and the plan pivots instantly.",
-                icon: <Sparkles className="text-blue-600" /> 
+              {
+                title: 'Adaptive nutrition targets',
+                desc: 'Calorie and macro targets adjust when your profile or objective changes.',
+                icon: <CheckCircle2 className="text-slate-700" size={18} />
               },
-              { 
-                title: "Premium Analysis", 
-                desc: "Access specialized training strategies for weight loss, muscle gain, or pure maintenance.",
-                icon: <Shield className="text-blue-600" /> 
+              {
+                title: 'Progress visibility',
+                desc: 'Track your weight trend over time with filters and goal pacing guidance.',
+                icon: <ShieldCheck className="text-slate-700" size={18} />
               }
             ].map((f, i) => (
-              <div key={i} className="bg-white p-8 rounded-2xl border border-slate-200 hover:border-blue-300 transition-all hover:shadow-xl group">
-                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <div key={i} className="rounded-3xl border border-slate-200 bg-slate-50 p-8">
+                <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white">
                   {f.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-3">{f.title}</h3>
-                <p className="text-slate-500 leading-relaxed">{f.desc}</p>
+                <h3 className="mb-3 text-xl font-semibold text-slate-900">{f.title}</h3>
+                <p className="leading-relaxed text-slate-600">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
-      {/* --- PRICING SECTION --- */}
-      <section id="pricing" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-              Simple, Results-Driven Pricing
-            </h2>
-            <p className="text-slate-500 max-w-xl mx-auto text-lg">
-              Start for free to track your metrics, or upgrade to let AI architect your entire performance plan.
+
+      <section id="pricing" className="py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-14 text-center">
+            <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-5xl">Simple pricing</h2>
+            <p className="mx-auto max-w-2xl text-slate-600">
+              Start free for tracking, then upgrade when you want full planning features.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            
-            {/* --- FREE PLAN --- */}
-            <div className="p-10 rounded-3xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col">
-              <h3 className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Basic Access</h3>
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-extrabold text-slate-900">$0</span>
-                <span className="text-slate-500 font-medium">/month</span>
+          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
+            <div className="flex flex-col rounded-3xl border border-slate-200 bg-white p-9">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Starter</h3>
+              <div className="mb-8 flex items-baseline gap-2">
+                <span className="text-5xl font-semibold">$0</span>
+                <span className="text-slate-500">/ month</span>
               </div>
-              
-              <ul className="space-y-5 mb-10 flex-grow">
+
+              <ul className="mb-10 flex-grow space-y-4">
                 {[
-                  'TDEE & Macro Calculation',
-                  'Basic Nutrition Tracking',
-                  'Community Dashboard Access',
+                  'Calorie target calculation',
+                  'Basic nutrition tracking',
+                  'Workout and meal history',
                   'Profile Management'
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-slate-600">
-                    <CheckCircle2 size={20} className="text-slate-300" /> 
-                    <span className="text-sm font-medium">{item}</span>
+                    <CheckCircle2 size={18} className="text-slate-400" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              
-              <Button asChild variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-700 hover:bg-slate-50 text-lg">
+
+              <Button asChild variant="outline" className="h-13 w-full rounded-2xl border-slate-300 text-slate-700 hover:bg-slate-50">
                 <Link href="/login">Get Started Free</Link>
               </Button>
             </div>
 
-            {/* --- PREMIUM PLAN --- */}
-            <div className="p-10 rounded-3xl border-2 border-blue-600 bg-white shadow-2xl shadow-blue-100 relative flex flex-col transform hover:-translate-y-1 transition-all">
-              <div className="absolute top-0 right-10 bg-blue-600 text-white text-[10px] font-black px-4 py-1.5 rounded-b-xl uppercase tracking-widest">
-                Recommended
+            <div className="relative flex flex-col rounded-3xl border border-slate-900 bg-slate-900 p-9 text-white">
+              <div className="absolute right-8 top-0 rounded-b-xl bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-900">
+                Popular
               </div>
-              
-              <h3 className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Premium Architect</h3>
-              <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-extrabold text-slate-900">$9</span>
-                <span className="text-slate-500 font-medium">/month</span>
+
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">Premium</h3>
+              <div className="mb-8 flex items-baseline gap-2">
+                <span className="text-5xl font-semibold">$9</span>
+                <span className="text-slate-300">/ month</span>
               </div>
-              
-              <ul className="space-y-5 mb-10 flex-grow">
+
+              <ul className="mb-10 flex-grow space-y-4">
                 {[
-                  'Everything in Free Plan',
-                  'AI-Generated 7-Day Workout Splits',
-                  'Customized Nutrition Blueprints',
-                  'Advanced AI Training Analysis',
-                  'Priority Model Access (OpenAI)',
-                  'Early Access to New Features'
+                  'Everything in Starter',
+                  'Weekly workout generation',
+                  'Personalized meal planning',
+                  'Advanced progress analysis',
+                  'Premium feature access'
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-slate-800">
-                    <CheckCircle2 size={20} className="text-blue-600" /> 
-                    <span className="text-sm font-bold">{item}</span>
+                  <li key={item} className="flex items-center gap-3 text-slate-100">
+                    <CheckCircle2 size={18} className="text-slate-300" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-              
-              <Button asChild className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 text-lg font-bold">
-                <Link href="/login">Unlock Premium Architect</Link>
+
+              <Button asChild className="h-13 w-full rounded-2xl bg-white text-slate-900 hover:bg-slate-100">
+                <Link href="/login">Upgrade to Premium</Link>
               </Button>
             </div>
-
           </div>
 
-          <div className="mt-16 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 text-slate-400">
-              <Shield size={16} />
-              <span className="text-xs font-semibold uppercase tracking-widest">Secure Payments via Stripe</span>
+          <div className="mt-14 flex justify-center">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
+              <ShieldCheck size={14} />
+              <span>Secure billing via Stripe</span>
             </div>
           </div>
         </div>

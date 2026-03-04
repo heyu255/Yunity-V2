@@ -1,10 +1,11 @@
 import { login, signUp, forgotPassword } from './actions'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, CheckCircle2, ArrowRight } from 'lucide-react'
+import { Dumbbell, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import BackNavigation from './BackNavigation'
 
 export default async function LoginPage({
   searchParams,
@@ -14,158 +15,141 @@ export default async function LoginPage({
   const params = await searchParams
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      
-      {/* LEFT SIDE: Branding & Features (Desktop Only) */}
-      <div className="hidden lg:flex bg-slate-900 relative overflow-hidden flex-col justify-between p-16">
-        {/* Decorative Background Glows */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600 rounded-full blur-[120px]" />
-        </div>
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
-              <Dumbbell size={28} className="text-white" />
-            </div>
-            <span className="text-3xl font-black tracking-tighter italic uppercase text-white">
-              YUNITY
-            </span>
-          </div>
-        </div>
-
-        <div className="relative z-10 space-y-8">
-          <h2 className="text-6xl font-black text-white leading-[1.1] tracking-tight">
-            Elevate your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">
-              performance.
-            </span>
-          </h2>
-          
-          <div className="space-y-5">
-            {[
-              "Personalized AI Training Architecture",
-              "Dynamic Macro & Nutrition Logic",
-              "Advanced Progress Tracking & Analytics"
-            ].map((feature) => (
-              <div key={feature} className="flex items-center gap-4 text-slate-300">
-                <div className="bg-indigo-500/10 p-1 rounded-full">
-                  <CheckCircle2 size={20} className="text-indigo-400" />
-                </div>
-                <span className="font-semibold text-lg">{feature}</span>
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 px-6 lg:grid-cols-2 lg:gap-12">
+        <section className="hidden items-center lg:flex">
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-2">
+              <div className="rounded-lg border border-slate-200 bg-slate-100 p-1.5">
+                <Dumbbell size={18} className="text-slate-700" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative z-10">
-          <p className="text-slate-500 font-medium">
-            Join the elite circle of performance-driven athletes.
-          </p>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE: Auth Form */}
-      <div className="flex items-center justify-center p-6 bg-slate-50">
-        <div className="w-full max-w-md space-y-8">
-          
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex justify-center mb-8">
-            <div className="flex items-center gap-2">
-              <Dumbbell size={32} className="text-indigo-600" />
-              <span className="text-3xl font-black italic uppercase tracking-tighter">YUNITY</span>
+              <span className="text-sm font-medium text-slate-700">Yunity Studio</span>
+            </div>
+            <h1 className="text-5xl font-semibold tracking-tight text-slate-900">
+              Welcome back.
+              <br />
+              Continue your plan.
+            </h1>
+            <p className="max-w-md text-lg text-slate-600">
+              A clean dashboard for workouts, nutrition targets, and measurable progress.
+            </p>
+            <div className="grid max-w-md grid-cols-2 gap-4 text-sm">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-slate-500">Plan cadence</p>
+                <p className="mt-2 text-xl font-semibold text-slate-900">7-day</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-slate-500">Progress tracking</p>
+                <p className="mt-2 flex items-center gap-2 text-xl font-semibold text-slate-900">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/60" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                  </span>
+                  Live
+                </p>
+              </div>
             </div>
           </div>
+        </section>
 
-          <div className="space-y-2 text-center lg:text-left">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Welcome Back</h1>
-            <p className="text-slate-500 font-medium">Access your custom strategy dashboard.</p>
-          </div>
+        <section className="flex items-center justify-center py-10 lg:py-0">
+          <div className="w-full max-w-md space-y-7">
+            <BackNavigation />
+            <div className="space-y-2 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 lg:hidden">
+                <Dumbbell size={14} className="text-slate-700" />
+                Yunity Studio
+              </div>
+              <h2 className="text-3xl font-semibold tracking-tight text-slate-900">Sign in</h2>
+              <p className="text-slate-600">Access your account and continue where you left off.</p>
+            </div>
 
-          <Card className="border-slate-200 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="pb-4">
-              {params?.error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-100 animate-in fade-in slide-in-from-top-2">
-                  <p className="text-sm text-red-600 text-center font-bold">
-                    {params.error}
-                  </p>
-                </div>
-              )}
-              {params?.message && (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 animate-in fade-in slide-in-from-top-2">
-                  <p className="text-sm text-emerald-600 text-center font-bold">
-                    {params.message}
-                  </p>
-                </div>
-              )}
-            </CardHeader>
-            
-            <CardContent>
-              <form id="login-form" className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-700 font-bold ml-1">Email</Label>
-                  <Input 
-                    id="email" 
-                    name="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    required 
-                    className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center ml-1">
-                    <Label htmlFor="password" className="text-slate-700 font-bold">Password</Label>
-                    <button 
-                      type="submit"
-                      formAction={forgotPassword}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors"
+            <Card className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
+              <CardHeader className="pb-4">
+                {params?.error && (
+                  <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                    <p className="text-center text-sm font-semibold text-red-600">
+                      {params.error}
+                    </p>
+                  </div>
+                )}
+                {params?.message && (
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                    <p className="text-center text-sm font-semibold text-emerald-600">
+                      {params.message}
+                    </p>
+                  </div>
+                )}
+              </CardHeader>
+
+              <CardContent>
+                <form id="login-form" className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="ml-1 text-slate-700">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      required
+                      className="h-12 rounded-xl border-slate-200 bg-slate-50 focus:ring-2 focus:ring-slate-400"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="ml-1 flex items-center justify-between">
+                      <Label htmlFor="password" className="text-slate-700">Password</Label>
+                      <button
+                        type="submit"
+                        formAction={forgotPassword}
+                        className="text-xs font-medium text-slate-600 transition-colors hover:text-slate-900"
+                      >
+                        Forgot?
+                      </button>
+                    </div>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      className="h-12 rounded-xl border-slate-200 bg-slate-50 focus:ring-2 focus:ring-slate-400"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-4">
+                    <Button
+                      formAction={login}
+                      className="group flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
                     >
-                      Forgot?
-                    </button>
+                      Log In
+                      <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                    </Button>
+
+                    <div className="relative py-2">
+                      <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-200" /></div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white px-2 text-slate-400">New to Yunity?</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      formAction={signUp}
+                      variant="outline"
+                      className="h-12 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      Create Account
+                    </Button>
                   </div>
-                  <Input 
-                    id="password" 
-                    name="password" 
-                    type="password" 
-                    className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
-                  />
-                </div>
+                </form>
+              </CardContent>
+            </Card>
 
-                <div className="flex flex-col gap-3 pt-4">
-                  <Button 
-                    formAction={login} 
-                    className="h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 group transition-all"
-                  >
-                    Log In
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                  
-                  <div className="relative py-2">
-                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-bold">New to Yunity?</span></div>
-                  </div>
-
-                  <Button 
-                    formAction={signUp} 
-                    variant="outline" 
-                    className="h-12 border-slate-200 hover:bg-slate-50 font-bold rounded-xl text-slate-700 transition-all"
-                  >
-                    Create Account
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          <footer className="text-center text-xs text-slate-400 px-6 leading-relaxed">
-            By signing in, you agree to our{" "}
-            <Link href="#" className="underline hover:text-indigo-600">Terms</Link> and{" "}
-            <Link href="#" className="underline hover:text-indigo-600">Privacy Policy</Link>.
-          </footer>
-        </div>
+            <footer className="px-4 text-center text-xs leading-relaxed text-slate-400 lg:text-left">
+              By continuing, you agree to our{' '}
+              <Link href="#" className="underline underline-offset-2 hover:text-slate-600">Terms</Link> and{' '}
+              <Link href="#" className="underline underline-offset-2 hover:text-slate-600">Privacy Policy</Link>.
+            </footer>
+          </div>
+        </section>
       </div>
     </div>
   )

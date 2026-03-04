@@ -35,15 +35,15 @@ export default async function FitnessPage() {
       {/* Header Section */}
       <header className="flex justify-between items-end border-b pb-6">
         <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
-            AI Personal Trainer
+          <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+            Fitness Dashboard
           </h1>
           <p className="text-slate-500 mt-2 text-lg">
             {isPremium ? 'Your custom 7-day performance strategy is ready.' : 'Upgrade to unlock custom AI workout plans.'}
           </p>
         </div>
         {isPremium && (
-          <span className="bg-indigo-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-indigo-100">
+          <span className="rounded-full bg-slate-900 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white">
             Premium Member
           </span>
         )}
@@ -55,7 +55,7 @@ export default async function FitnessPage() {
       {/* Workout History Section */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 text-slate-800">
-          <History size={20} className="text-indigo-500" />
+          <History size={20} className="text-slate-500" />
           <h2 className="text-xl font-bold">Recent Plans</h2>
         </div>
 
@@ -67,14 +67,14 @@ export default async function FitnessPage() {
                 href={`/dashboard/fitness/workout/${workout.id}`}
                 className="group block"
               >
-                <Card className="hover:border-indigo-300 transition-all hover:shadow-md cursor-pointer border-slate-200">
+                <Card className="cursor-pointer border-slate-200 transition-all hover:border-slate-300 hover:shadow-md">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="bg-slate-100 p-2 rounded-lg group-hover:bg-indigo-50 transition-colors">
-                        <Calendar size={18} className="text-slate-500 group-hover:text-indigo-600" />
+                      <div className="bg-slate-100 p-2 rounded-lg transition-colors group-hover:bg-slate-200">
+                        <Calendar size={18} className="text-slate-500 group-hover:text-slate-700" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                        <p className="font-bold text-slate-900 transition-colors group-hover:text-slate-700">
                           {workout.name}
                         </p>
                         <p className="text-xs text-slate-400">
@@ -82,7 +82,7 @@ export default async function FitnessPage() {
                         </p>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight size={18} className="text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-slate-500" />
                   </CardContent>
                 </Card>
               </Link>

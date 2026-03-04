@@ -95,7 +95,7 @@ export default async function ResetPasswordPage({
       <div className="w-full max-w-md space-y-8">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2">
-            <Dumbbell size={32} className="text-indigo-600" />
+            <Dumbbell size={32} className="text-slate-700" />
             <span className="text-3xl font-black italic uppercase tracking-tighter">YUNITY</span>
           </div>
         </div>
@@ -111,8 +111,8 @@ export default async function ResetPasswordPage({
               </div>
             )}
             {!user && !params?.error && params?.code && (
-              <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 mt-4">
-                <p className="text-sm text-blue-600 text-center font-bold">
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-100 p-4">
+                <p className="text-center text-sm font-bold text-slate-700">
                   Verifying reset link... Please wait a moment.
                 </p>
               </div>
@@ -129,7 +129,7 @@ export default async function ResetPasswordPage({
                   type="password" 
                   required 
                   minLength={6}
-                  className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="h-12 rounded-xl border-slate-200 transition-all focus:ring-2 focus:ring-slate-400"
                 />
               </div>
               
@@ -141,13 +141,13 @@ export default async function ResetPasswordPage({
                   type="password" 
                   required 
                   minLength={6}
-                  className="h-12 rounded-xl border-slate-200 focus:ring-2 focus:ring-indigo-500 transition-all"
+                  className="h-12 rounded-xl border-slate-200 transition-all focus:ring-2 focus:ring-slate-400"
                 />
               </div>
 
               <Button 
                 type="submit"
-                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100"
+                className="h-12 w-full rounded-xl bg-slate-900 font-bold text-white hover:bg-slate-800"
               >
                 Reset Password
               </Button>

@@ -30,7 +30,7 @@ export default async function MealPlanDetailPage({ params }: MealPlanPageProps) 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20 px-4">
       <Link href="/dashboard/nutrition">
-        <Button variant="ghost" className="gap-2 text-slate-500 hover:text-orange-600 pl-0">
+        <Button variant="ghost" className="gap-2 pl-0 text-slate-500 hover:text-slate-900">
           <ChevronLeft size={16} /> Back to Nutrition
         </Button>
       </Link>
@@ -38,11 +38,11 @@ export default async function MealPlanDetailPage({ params }: MealPlanPageProps) 
       <header className="space-y-4">
         <h1 className="text-4xl font-black text-slate-900 tracking-tight">{mp.name}</h1>
         <div className="flex flex-wrap gap-3">
-          <div className="bg-orange-50 text-orange-700 px-4 py-2 rounded-xl border border-orange-100 flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-slate-700">
             <Flame size={16} />
             <span className="font-bold">{plan.total_macros.protein}g Protein</span>
           </div>
-          <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-slate-700">
             <Scale size={16} />
             <span className="font-bold">{plan.total_macros.carbs}g Carbs</span>
           </div>
@@ -51,10 +51,10 @@ export default async function MealPlanDetailPage({ params }: MealPlanPageProps) 
 
       <div className="grid gap-6">
         {plan.meals.map((meal: any, i: number) => (
-          <Card key={i} className="border-slate-200 overflow-hidden hover:border-orange-200 transition-colors">
+          <Card key={i} className="overflow-hidden border-slate-200 transition-colors hover:border-slate-300">
             <CardHeader className="bg-slate-50/50 py-4 border-b flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold flex items-center gap-3">
-                <div className="bg-white p-1.5 rounded-md border shadow-sm text-orange-600">
+                <div className="rounded-md border bg-white p-1.5 text-slate-700 shadow-sm">
                   <Utensils size={18} />
                 </div>
                 {meal.name}
@@ -70,11 +70,11 @@ export default async function MealPlanDetailPage({ params }: MealPlanPageProps) 
       </div>
 
       {plan.nutrition_tip && (
-        <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 flex gap-4">
-          <Info className="text-indigo-500 shrink-0" />
+        <div className="flex gap-4 rounded-2xl border border-slate-200 bg-slate-100 p-6">
+          <Info className="shrink-0 text-slate-600" />
           <div>
-            <p className="font-bold text-indigo-900">Nutritionist Tip</p>
-            <p className="text-indigo-700 text-sm">{plan.nutrition_tip}</p>
+            <p className="font-bold text-slate-900">Nutritionist Tip</p>
+            <p className="text-sm text-slate-600">{plan.nutrition_tip}</p>
           </div>
         </div>
       )}

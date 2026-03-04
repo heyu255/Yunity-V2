@@ -53,14 +53,14 @@ export default function OnboardingPage() {
 
             <div className="space-y-2">
               <Label htmlFor="goal">Your Goal</Label>
-              <select name="goal" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-blue-600">
+              <select name="goal" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-slate-700">
                 <option value="lose">Weight Loss</option>
                 <option value="maintain">Maintain Weight</option>
                 <option value="gain">Muscle Gain</option>
               </select>
             </div>
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="w-full bg-slate-900 text-white hover:bg-slate-800">
               Generate My Fitness Plan
             </Button>
           </form>

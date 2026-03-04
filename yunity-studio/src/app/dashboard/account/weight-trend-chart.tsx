@@ -86,7 +86,7 @@ export default function WeightTrendChart({ entries, goal }: WeightTrendChartProp
               onClick={() => setSelectedRange(option.value)}
               className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${
                 selectedRange === option.value
-                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  ? 'border-slate-300 bg-slate-100 text-slate-800'
                   : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -141,7 +141,7 @@ export default function WeightTrendChart({ entries, goal }: WeightTrendChartProp
               onClick={() => setSelectedRange(option.value)}
               className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${
                 selectedRange === option.value
-                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  ? 'border-slate-300 bg-slate-100 text-slate-800'
                   : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -188,15 +188,15 @@ export default function WeightTrendChart({ entries, goal }: WeightTrendChartProp
               strokeDasharray="6 6"
             />
           )}
-          <path d={path} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+          <path d={path} fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
 
           {points.map((point, index) => (
-            <circle key={`${point.entry.created_at}-${index}`} cx={point.x} cy={point.y} r="4" fill="#2563eb" />
+            <circle key={`${point.entry.created_at}-${index}`} cx={point.x} cy={point.y} r="4" fill="#334155" />
           ))}
         </svg>
         <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-blue-600" />
+            <span className="h-2 w-2 rounded-full bg-slate-700" />
             {showSmoothed ? 'Smoothed trend' : 'Raw trend'}
           </span>
           {goalY !== null && (

@@ -46,7 +46,7 @@ export default async function AccountPage() {
       <form action={updateProfile}>
         <Card className="shadow-md border-slate-200">
           <CardHeader className="bg-slate-50/50 border-b">
-            <CardTitle className="flex items-center gap-2 text-blue-600">
+            <CardTitle className="flex items-center gap-2 text-slate-800">
               <User size={20} /> Personal Information
             </CardTitle>
           </CardHeader>
@@ -58,7 +58,7 @@ export default async function AccountPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-500">Subscription Status</Label>
-                <div className="px-3 py-2 rounded-md border border-blue-100 bg-blue-50 font-bold text-sm text-blue-700">
+                <div className="rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
                   {profile?.is_premium ? '🌟 Premium Member' : 'Free Tier'}
                 </div>
               </div>
@@ -72,28 +72,28 @@ export default async function AccountPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-slate-600">
-                    <Weight size={16} className="text-blue-500" /> Weight (kg)
+                    <Weight size={16} className="text-slate-500" /> Weight (kg)
                   </Label>
                   {/* Changed name to weight_kg */}
-                  <Input name="weight_kg" type="number" step="0.1" defaultValue={profile?.weight_kg} className="focus:ring-blue-500" />
+                  <Input name="weight_kg" type="number" step="0.1" defaultValue={profile?.weight_kg} className="focus:ring-slate-400" />
                 </div>
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-slate-600">
-                    <Ruler size={16} className="text-blue-500" /> Height (cm)
+                    <Ruler size={16} className="text-slate-500" /> Height (cm)
                   </Label>
                   {/* Changed name to height_cm */}
-                  <Input name="height_cm" type="number" defaultValue={profile?.height_cm} className="focus:ring-blue-500" />
+                  <Input name="height_cm" type="number" defaultValue={profile?.height_cm} className="focus:ring-slate-400" />
                 </div>
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-slate-600">
-                    <Activity size={16} className="text-blue-500" /> Activity Level
+                    <Activity size={16} className="text-slate-500" /> Activity Level
                   </Label>
                   <select 
                     name="activity_level" 
                     defaultValue={profile?.activity_level}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-400"
                   >
                     <option value="sedentary">Sedentary</option>
                     <option value="light">Lightly Active</option>
@@ -104,12 +104,12 @@ export default async function AccountPage() {
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-slate-600">
-                    <Target size={16} className="text-blue-500" /> Your Goal
+                    <Target size={16} className="text-slate-500" /> Your Goal
                   </Label>
                   <select 
                     name="goal" 
                     defaultValue={profile?.goal}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-400"
                   >
                     <option value="lose">Weight Loss</option>
                     <option value="maintain">Maintain Weight</option>
@@ -122,7 +122,7 @@ export default async function AccountPage() {
                 Note: Updating these will automatically recalculate your TDEE and AI plans.
               </p>
 
-              <SubmitButton className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-semibold shadow-lg shadow-blue-100 transition-all active:scale-[0.98]">
+              <SubmitButton className="h-12 w-full bg-slate-900 text-lg font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98]">
                 Save Changes
               </SubmitButton>
 
@@ -157,7 +157,7 @@ export default async function AccountPage() {
 )}
       <Card className="shadow-md border-slate-200">
         <CardHeader className="bg-slate-50/50 border-b">
-          <CardTitle className="flex items-center gap-2 text-blue-600">
+          <CardTitle className="flex items-center gap-2 text-slate-800">
             <TrendingUp size={20} /> Weight Progress Trend
           </CardTitle>
         </CardHeader>

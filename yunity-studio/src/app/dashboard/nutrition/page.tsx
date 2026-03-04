@@ -38,7 +38,7 @@ export default async function NutritionPage() {
           Nutrition Dashboard
         </h1>
         <p className="text-slate-500">
-          Smart macros to hit your <span className="text-orange-600 font-bold">{profile.daily_calories_target} kcal</span> daily target.
+          Smart macros to hit your <span className="font-semibold text-slate-800">{profile.daily_calories_target} kcal</span> daily target.
         </p>
       </header>
 
@@ -49,7 +49,7 @@ export default async function NutritionPage() {
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-slate-800">
-            <History size={20} className="text-orange-500" />
+            <History size={20} className="text-slate-500" />
             <h2 className="text-xl font-bold">Recent Meal Plans</h2>
           </div>
         </div>
@@ -62,27 +62,27 @@ export default async function NutritionPage() {
                 href={`/dashboard/nutrition/meal-plan/${mp.id}`}
                 className="group block"
               >
-                <Card className="hover:border-orange-300 transition-all hover:shadow-md cursor-pointer border-slate-200">
+                <Card className="cursor-pointer border-slate-200 transition-all hover:border-slate-300 hover:shadow-md">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="bg-slate-100 p-2.5 rounded-xl group-hover:bg-orange-50 transition-colors">
-                        <Utensils size={20} className="text-slate-500 group-hover:text-orange-600" />
+                      <div className="bg-slate-100 p-2.5 rounded-xl transition-colors group-hover:bg-slate-200">
+                        <Utensils size={20} className="text-slate-500 group-hover:text-slate-700" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
+                        <p className="font-bold text-slate-900 transition-colors group-hover:text-slate-700">
                           {mp.name}
                         </p>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="flex items-center gap-1 text-xs text-slate-400">
                             <Calendar size={12} /> {new Date(mp.created_at).toLocaleDateString()}
                           </span>
-                          <span className="flex items-center gap-1 text-xs text-orange-600 font-medium">
+                          <span className="flex items-center gap-1 text-xs font-medium text-slate-600">
                             <Flame size={12} /> {mp.plan.total_macros.protein}g Protein
                           </span>
                         </div>
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-slate-300 group-hover:text-orange-400 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight size={18} className="text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-slate-500" />
                   </CardContent>
                 </Card>
               </Link>

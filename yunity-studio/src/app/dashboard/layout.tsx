@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Utensils, Dumbbell, LogOut } from 'lucide-react'
+import { Utensils, Dumbbell } from 'lucide-react'
 import { LogoutButton } from '@/components/LogoutButton'
 import { createClient } from '@/utils/supabase/server'
 
@@ -15,41 +15,41 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-white hidden md:flex flex-col sticky top-0 h-screen">
+      <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-slate-200 bg-white md:flex">
         {/* Logo Section */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-black text-blue-600 tracking-tighter italic">YUNITY STUDIO</h2>
+        <div className="border-b p-6">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900">Yunity Studio</h2>
         </div>
 
         {/* Primary Navigation */}
         <nav className="flex-1 p-4 space-y-1">
-          <Link 
-            href="/dashboard/nutrition" 
-            className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all font-semibold group"
+          <Link
+            href="/dashboard/nutrition"
+            className="group flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900"
           >
             <Utensils size={18} className="group-hover:scale-110 transition-transform" /> 
-            <span className="text-lg">AI Nutrition</span>
+            <span className="text-base">Nutrition</span>
           </Link>
-          <Link 
-            href="/dashboard/fitness" 
-            className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-all font-semibold group"
+          <Link
+            href="/dashboard/fitness"
+            className="group flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900"
           >
             <Dumbbell size={18} className="group-hover:scale-110 transition-transform" /> 
-            <span className="text-lg">AI Fitness Trainer</span>
+            <span className="text-base">Fitness</span>
           </Link>
         </nav>
 
         {/* User & Settings Section (Aligned Bottom) */}
-        <div className="p-4 mt-auto border-t bg-slate-50/50">
+        <div className="mt-auto border-t bg-slate-50/50 p-4">
           <div className="flex flex-col gap-1 w-full">
             
             {/* Account Link with Initials */}
-            <Link 
-              href="/dashboard/account" 
-              className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:text-blue-600 hover:bg-white rounded-lg transition-all font-medium group border border-transparent hover:border-slate-200"
+            <Link
+              href="/dashboard/account"
+              className="group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 font-medium text-slate-600 transition-all hover:border-slate-200 hover:bg-white hover:text-slate-900"
             >
-              <div className="flex items-center justify-center w-8 h-8 min-w-[32px] rounded-md bg-slate-200 group-hover:bg-blue-100 transition-colors">
-                 <span className="text-[11px] font-bold text-slate-600 group-hover:text-blue-600">
+              <div className="flex h-8 min-w-[32px] w-8 items-center justify-center rounded-md bg-slate-200 transition-colors group-hover:bg-slate-300">
+                 <span className="text-[11px] font-bold text-slate-700">
                     {initials}
                  </span>
               </div>
