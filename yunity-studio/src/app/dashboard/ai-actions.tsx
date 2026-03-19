@@ -58,7 +58,7 @@ const prompt = `
   return planData
 
 }
-export async function generateWorkoutPlan() {
+export async function generateWorkoutPlan(notes?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
@@ -71,19 +71,20 @@ export async function generateWorkoutPlan() {
   if (!profile || !profile.is_premium) throw new Error("PREMIUM_REQUIRED")
 
   const prompt = `
-      Act as a World-Class Personal Trainer. 
+      Act as a World-Class Personal Trainer.
       Design a comprehensive 7-day workout split for a user aiming to ${profile.goal}.
-      
+      ${notes ? `\n      Important personal notes from the user: ${notes}\n      Take these into account when selecting exercises, intensity, and structure.` : ''}
+
       Return ONLY a JSON object with this structure:
       {
         "split_name": "string",
         "days": [
-          { 
-            "day": "string", 
-            "focus": "string", 
+          {
+            "day": "string",
+            "focus": "string",
             "exercises": [
               { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
-            ] 
+            ]
           }
         ]
       }
@@ -97,25 +98,24 @@ export async function generateWorkoutPlan() {
   
   const workoutData = JSON.parse(response.choices[0].message.content || '{}')
 
-  // 2. SAVE to the database
-  const { error } = await supabase
-    .from('workouts')
-    .insert({
-      user_id: user.id,
-      name: `Workout for ${new Date().toLocaleDateString()}`,
-      plan: workoutData, // Saving the full JSON object
-    })
-
-  if (error) {
-    console.error("Error saving workout:", error.message)
-    // We don't "throw" here so the user still gets their workout even if save fails
-  }
-
-  // 3. Refresh the history list on the page
-  revalidatePath('/dashboard/fitness')
-
-  // 4. IMPORTANT: Return the workoutData (the AI JSON), NOT the database row
+  // Return the plan — saving is done separately so the user can name it first
   return workoutData
+}
+
+export async function saveWorkoutPlan(name: string, plan: any) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { error } = await supabase.from('workouts').insert({
+    user_id: user.id,
+    name: name.trim() || 'My Workout Plan',
+    plan,
+  })
+
+  if (error) console.error('Error saving workout:', error.message)
+
+  revalidatePath('/dashboard/fitness')
 }
   
   export async function updateProfile(formData: FormData) {

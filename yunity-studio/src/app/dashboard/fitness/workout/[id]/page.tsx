@@ -10,14 +10,12 @@ interface WorkoutPageProps {
 }
 
 export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
-  const { id } = await params // route param (workout id)
+  const { id } = await params
   const supabase = await createClient()
 
-  // Auth guard: must be logged in
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Fetch the workout by id and user_id (security: users can only access their own workouts)
   const { data: workout, error } = await supabase
     .from('workouts')
     .select('*')
@@ -31,34 +29,30 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20 px-4">
-      {/* Navigation */}
       <Link href="/dashboard/fitness">
         <Button variant="ghost" className="gap-2 pl-0 text-slate-500 hover:text-slate-900">
           <ChevronLeft size={16} /> Back to Trainer
         </Button>
       </Link>
 
-      {/* Header */}
       <header className="space-y-2">
         <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-          {workoutPlan.split_name || workout.name}
+          {workout.name}
         </h1>
         <p className="text-slate-500 font-medium">
-          Plan created on {new Date(workout.created_at).toLocaleDateString(undefined, {
+          {workoutPlan.split_name} · Created {new Date(workout.created_at).toLocaleDateString(undefined, {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
+            day: 'numeric',
           })}
         </p>
       </header>
 
-      {/* Render the Nested AI Plan (Days -> Exercises) */}
       <div className="space-y-12">
         {workoutPlan.days ? (
           workoutPlan.days.map((day: any, dayIdx: number) => (
             <section key={dayIdx} className="space-y-6">
-              {/* Day Header */}
               <div className="flex items-center gap-4">
                 <div className="h-8 w-1 rounded-full bg-slate-700" />
                 <h2 className="text-2xl font-bold text-slate-900">{day.day}</h2>
@@ -107,13 +101,11 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
             </section>
           ))
         ) : (
-          /* Fallback for old data or mismatched structures */
           <div className="p-10 text-center bg-amber-50 rounded-xl border border-amber-200">
-             <p className="text-amber-800 font-bold">Unrecognized Plan Format</p>
-             <p className="text-amber-600 text-sm mt-1">We couldn't parse this specific workout split structure.</p>
-             <pre className="text-left mt-6 text-[10px] bg-slate-900 text-slate-300 p-4 rounded-lg overflow-auto max-h-60">
-                {JSON.stringify(workoutPlan, null, 2)}
-             </pre>
+            <p className="text-amber-800 font-bold">Unrecognized Plan Format</p>
+            <pre className="text-left mt-6 text-[10px] bg-slate-900 text-slate-300 p-4 rounded-lg overflow-auto max-h-60">
+              {JSON.stringify(workoutPlan, null, 2)}
+            </pre>
           </div>
         )}
       </div>
