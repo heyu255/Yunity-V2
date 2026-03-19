@@ -129,7 +129,7 @@ export function WorkoutLogger({
             <CardContent className="p-0">
               <div className="divide-y divide-slate-100">
                 {/* Column headers */}
-                <div className="grid grid-cols-[2.5rem_1fr_1fr_2.5rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <div className="grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <span>Set</span>
                   <span>Weight ({unit})</span>
                   <span>Reps</span>
@@ -138,7 +138,7 @@ export function WorkoutLogger({
                 {ex.sets.map((set, setIdx) => (
                   <div
                     key={setIdx}
-                    className={`grid grid-cols-[2.5rem_1fr_1fr_2.5rem] gap-3 px-4 py-2.5 items-center transition-colors ${
+                    className={`grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 items-center transition-colors ${
                       set.completed ? 'bg-green-50' : ''
                     }`}
                   >
@@ -150,7 +150,7 @@ export function WorkoutLogger({
                       placeholder="—"
                       value={set.weight}
                       onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
-                      className="h-8 text-sm"
+                      className="h-11 text-sm"
                     />
                     <Input
                       type="number"
@@ -158,17 +158,17 @@ export function WorkoutLogger({
                       placeholder="—"
                       value={set.reps}
                       onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
-                      className="h-8 text-sm"
+                      className="h-11 text-sm"
                     />
                     <button
                       onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
-                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
                         set.completed
                           ? 'bg-green-500 border-green-500 text-white'
                           : 'border-slate-300 hover:border-slate-500'
                       }`}
                     >
-                      {set.completed && <Check size={12} strokeWidth={3} />}
+                      {set.completed && <Check size={14} strokeWidth={3} />}
                     </button>
                   </div>
                 ))}

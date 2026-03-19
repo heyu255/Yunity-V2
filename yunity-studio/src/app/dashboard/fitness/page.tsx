@@ -39,10 +39,10 @@ export default async function FitnessPage() {
       {/* Header */}
       <header className="flex justify-between items-end border-b pb-6">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-slate-900">
             Fitness Dashboard
           </h1>
-          <p className="text-slate-500 mt-2 text-lg">
+          <p className="text-slate-500 mt-2 text-base sm:text-lg">
             {isPremium ? 'Your custom 7-day performance strategy is ready.' : 'Upgrade to unlock custom AI workout plans.'}
           </p>
         </div>

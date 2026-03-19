@@ -34,10 +34,10 @@ export default async function AccountPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-10">
-      <header className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-900">Account Settings</h1>
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Account Settings</h1>
         <form action={logout}>
-          <Button variant="ghost" className="text-slate-500 hover:text-red-600 transition-colors">
+          <Button variant="ghost" className="text-slate-500 hover:text-red-600 transition-colors w-full sm:w-auto">
             <LogOut size={18} className="mr-2" /> Sign Out
           </Button>
         </form>
@@ -137,17 +137,16 @@ export default async function AccountPage() {
         Billing & Subscription
       </CardTitle>
     </CardHeader>
-    <CardContent className="pt-6 flex items-center justify-between">
+    <CardContent className="pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <p className="font-semibold text-slate-900">Manage your plan</p>
         <p className="text-sm text-slate-500">Update payment methods or cancel your subscription.</p>
       </div>
-      
       <form action={createCustomerPortalSession}>
-        <Button 
-          type="submit" 
-          variant="outline" 
-          className="border-slate-300 hover:bg-slate-50 font-semibold"
+        <Button
+          type="submit"
+          variant="outline"
+          className="border-slate-300 hover:bg-slate-50 font-semibold w-full sm:w-auto"
         >
           Open Stripe Portal
         </Button>

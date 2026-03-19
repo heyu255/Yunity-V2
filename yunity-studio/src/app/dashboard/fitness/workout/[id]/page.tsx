@@ -36,7 +36,7 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
       </Link>
 
       <header className="space-y-2">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
           {workout.name}
         </h1>
         <p className="text-slate-500 font-medium">
@@ -63,14 +63,14 @@ export default async function WorkoutDetailPage({ params }: WorkoutPageProps) {
                 {day.exercises && day.exercises.length > 0 ? (
                   day.exercises.map((ex: any, exIdx: number) => (
                     <Card key={exIdx} className="overflow-hidden border-slate-200 shadow-sm transition-colors hover:border-slate-300">
-                      <CardHeader className="bg-slate-50/50 py-4 flex flex-row items-center justify-between border-b">
+                      <CardHeader className="bg-slate-50/50 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b">
                         <CardTitle className="text-lg font-bold flex items-center gap-3">
-                          <div className="bg-white p-1.5 rounded-md border shadow-sm">
+                          <div className="bg-white p-1.5 rounded-md border shadow-sm shrink-0">
                             <Dumbbell size={18} className="text-slate-700" />
                           </div>
                           {ex.name}
                         </CardTitle>
-                        <div className="flex gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
                           <span className="bg-white border px-2 py-1 rounded-md flex items-center gap-1">
                             <ListChecks size={14} className="text-slate-500" /> {ex.sets} Sets × {ex.reps}
                           </span>

@@ -176,7 +176,8 @@ export default function WorkoutGenerator({ isPremium, goal, initialPlan, initial
       {/* Plan tabs */}
       {plan && (
         <Tabs defaultValue={plan.days[0]?.day} className="w-full">
-          <TabsList className="grid grid-cols-7 w-full h-14 bg-slate-100 p-1.5 rounded-xl">
+          <div className="overflow-x-auto pb-1">
+          <TabsList className="grid grid-cols-7 w-full min-w-[420px] h-14 bg-slate-100 p-1.5 rounded-xl">
             {plan.days.map((d: any) => (
               <TabsTrigger
                 key={d.day}
@@ -187,6 +188,7 @@ export default function WorkoutGenerator({ isPremium, goal, initialPlan, initial
               </TabsTrigger>
             ))}
           </TabsList>
+          </div>
 
           {plan.days.map((d: any) => (
             <TabsContent

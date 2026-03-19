@@ -48,7 +48,7 @@ export default async function WorkoutLogPage({ params }: Props) {
         <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
           {workoutPlan.split_name} · {dayData.day}
         </p>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">{dayData.focus}</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{dayData.focus}</h1>
         <p className="text-slate-500">{dayData.exercises.length} exercises · Log your sets below</p>
       </header>
 

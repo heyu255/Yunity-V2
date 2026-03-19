@@ -34,7 +34,7 @@ export default async function NutritionPage() {
     <div className="max-w-4xl mx-auto space-y-10 pb-20">
       {/* Header Section */}
       <header className="space-y-2 border-b pb-6">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Nutrition Dashboard
         </h1>
         <p className="text-slate-500">
