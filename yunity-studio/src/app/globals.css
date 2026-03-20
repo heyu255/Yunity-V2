@@ -132,5 +132,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent content from going under iPhone status bar */
+    padding-top: env(safe-area-inset-top);
   }
+}
+
+/* Extra bottom clearance for iPhone home indicator */
+.pb-safe {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }

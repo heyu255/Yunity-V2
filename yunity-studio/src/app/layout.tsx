@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
@@ -17,7 +17,20 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Yunity Studio',
-  description: 'Yunity Studio is a platform for building custom 7-day performance splits and nutrition targets tailored to your DNA and goals.',
+  description: 'AI-powered fitness and nutrition tracking.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Yunity',
+    statusBarStyle: 'black-translucent',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

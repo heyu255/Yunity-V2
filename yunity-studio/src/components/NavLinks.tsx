@@ -89,7 +89,7 @@ export function BottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-sm">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
       {allItems.map(({ href, icon: Icon, label, color }) => {
         const active = isActive(href, path) || (href === '/dashboard/account' && path.startsWith('/dashboard/account'))
         return (
