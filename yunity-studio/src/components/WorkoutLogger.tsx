@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { logWorkout, type ExerciseLog } from '@/app/dashboard/fitness/workout/actions'
 import { RestTimer } from '@/components/RestTimer'
 import { toast } from 'sonner'
-import type { PR } from '@/app/dashboard/fitness/fitness-actions'
+import type { PR, LastSession } from '@/app/dashboard/fitness/fitness-actions'
 
 type Exercise = {
   name: string
@@ -76,6 +76,7 @@ export function WorkoutLogger({
   dayName,
   exercises,
   previousBests = {},
+  lastSessions = {},
   availableExercises = [],
 }: {
   workoutId: string
@@ -83,6 +84,7 @@ export function WorkoutLogger({
   dayName: string
   exercises: Exercise[]
   previousBests?: Record<string, PR>
+  lastSessions?: Record<string, LastSession>
   availableExercises?: Exercise[]
 }) {
   const router = useRouter()
@@ -249,6 +251,7 @@ export function WorkoutLogger({
         const exercise = allExercises[exIdx]
         const exKey = ex.name.toLowerCase().trim()
         const prevBest = previousBests[exKey]
+        const lastSess = lastSessions[exKey]
         const isNewPR = newPRs.has(exKey)
         const isCustom = exercise?.isCustom
         const cardio = isCardio(ex.name)
@@ -289,6 +292,13 @@ export function WorkoutLogger({
                         PR: {prevBest.weight}{prevBest.unit} × {prevBest.reps}
                         <br />
                         <span className="text-slate-300">~{Math.round(prevBest.oneRM * 10) / 10} 1RM</span>
+                      </span>
+                    )}
+                    {lastSess && (
+                      <span className="text-xs text-slate-400 text-right">
+                        Last: {lastSess.completedSets}×{lastSess.reps} @ {lastSess.weight}{lastSess.unit}
+                        <br />
+                        <span className="text-emerald-500 font-medium">↑ Try {lastSess.suggestWeight}{lastSess.unit}</span>
                       </span>
                     )}
                   </div>
@@ -365,7 +375,7 @@ export function WorkoutLogger({
                             type="number"
                             min="0"
                             step="0.5"
-                            placeholder="—"
+                            placeholder={lastSess ? `↑${lastSess.suggestWeight}` : "—"}
                             value={set.weight}
                             onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
                             className="h-11 text-sm"
@@ -373,7 +383,7 @@ export function WorkoutLogger({
                           <Input
                             type="number"
                             min="0"
-                            placeholder="—"
+                            placeholder={lastSess ? `${lastSess.reps}` : "—"}
                             value={set.reps}
                             onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
                             className="h-11 text-sm"

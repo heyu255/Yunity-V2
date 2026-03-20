@@ -82,6 +82,56 @@ export async function getExercisePRs(exerciseNames: string[]): Promise<Record<st
   return result
 }
 
+export type LastSession = {
+  completedSets: number
+  weight: number
+  reps: number
+  unit: string
+  suggestWeight: number
+}
+
+export async function getLastSessionForExercises(
+  exerciseNames: string[]
+): Promise<Record<string, LastSession>> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: logs } = await supabase
+    .from('workout_logs')
+    .select('exercise_logs, unit, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (!logs) return {}
+
+  const result: Record<string, LastSession> = {}
+  const normalizedNames = exerciseNames.map(n => n.toLowerCase().trim())
+
+  for (const log of logs) {
+    for (const ex of (log.exercise_logs ?? [])) {
+      const key = ex.name?.toLowerCase().trim()
+      if (!key || !normalizedNames.includes(key) || result[key]) continue
+
+      const completedSets = (ex.sets ?? []).filter((s: any) => s.completed && s.weight && s.reps)
+      if (!completedSets.length) continue
+
+      const heaviest = completedSets.sort((a: any, b: any) => b.weight - a.weight)[0]
+      result[key] = {
+        completedSets: completedSets.length,
+        weight: heaviest.weight,
+        reps: heaviest.reps,
+        unit: log.unit,
+        suggestWeight: Math.round((heaviest.weight + 2.5) * 2) / 2,
+      }
+    }
+    if (normalizedNames.every(n => result[n])) break
+  }
+
+  return result
+}
+
 export type TodayExercise = {
   name: string
   target: string

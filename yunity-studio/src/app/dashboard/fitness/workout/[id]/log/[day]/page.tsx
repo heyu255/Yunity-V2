@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WorkoutLogger } from '@/components/WorkoutLogger'
-import { getExercisePRs } from '@/app/dashboard/fitness/fitness-actions'
+import { getExercisePRs, getLastSessionForExercises } from '@/app/dashboard/fitness/fitness-actions'
 
 interface Props {
   params: Promise<{ id: string; day: string }>
@@ -38,7 +38,10 @@ export default async function WorkoutLogPage({ params }: Props) {
   }
 
   const exerciseNames = dayData.exercises.map((ex: any) => ex.name)
-  const previousBests = await getExercisePRs(exerciseNames)
+  const [previousBests, lastSessions] = await Promise.all([
+    getExercisePRs(exerciseNames),
+    getLastSessionForExercises(exerciseNames),
+  ])
 
   // All exercises from the plan across all days (for the add-exercise dropdown)
   const allPlanExercises: { name: string; sets: number; reps: string; rest: string }[] =
@@ -76,6 +79,7 @@ export default async function WorkoutLogPage({ params }: Props) {
         dayName={dayData.day}
         exercises={dayData.exercises}
         previousBests={previousBests}
+        lastSessions={lastSessions}
         availableExercises={availableExercises}
       />
     </div>
