@@ -17,10 +17,10 @@ export function TrialBanner({ daysLeft }: { daysLeft: number }) {
         : 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white'
     }`}>
       {/* Left: message */}
-      <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+      <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         <Zap size={14} className="shrink-0 opacity-90" />
-        <div className="overflow-hidden min-w-0">
-          <p className="text-xs font-semibold whitespace-nowrap animate-marquee">
+        <div className="relative flex-1 overflow-hidden h-4">
+          <p className="animate-marquee text-xs font-semibold">
             {urgent
               ? `⚠️ Your free trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'} — upgrade to keep premium access.`
               : `🎉 You're on a free ${7}-day trial — ${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining. Enjoy all premium features!`
