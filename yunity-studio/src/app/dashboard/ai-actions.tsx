@@ -296,22 +296,27 @@ export async function updateWorkoutDay(workoutId: string, dayIndex: number, exer
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: workout } = await supabase
+  const { data: workout, error: fetchError } = await supabase
     .from('workouts')
     .select('plan')
     .eq('id', workoutId)
     .eq('user_id', user.id)
     .single()
-  if (!workout?.plan) return null
+  if (fetchError || !workout?.plan) return null
 
   const updatedDays = [...workout.plan.days]
   updatedDays[dayIndex] = { ...updatedDays[dayIndex], exercises }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('workouts')
     .update({ plan: { ...workout.plan, days: updatedDays } })
     .eq('id', workoutId)
     .eq('user_id', user.id)
+
+  if (updateError) {
+    console.error('updateWorkoutDay failed:', updateError.message)
+    throw new Error(updateError.message)
+  }
 
   revalidatePath('/dashboard/fitness')
   revalidatePath(`/dashboard/fitness/workout/${workoutId}`)

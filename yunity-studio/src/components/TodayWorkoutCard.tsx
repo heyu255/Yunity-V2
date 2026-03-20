@@ -41,14 +41,34 @@ export function TodayWorkoutCard({
     if (!workoutId) return
 
     async function handlePlanChanged(e: Event) {
-      const detail = (e as CustomEvent).detail as { dayIndex?: number } | undefined
-      // Use day index from event (set-as-today) or current state
+      const detail = (e as CustomEvent).detail as { dayIndex?: number; planExercises?: any[] } | undefined
       const hasNewIdx = detail?.dayIndex !== undefined && detail.dayIndex !== null
       const idx = hasNewIdx ? detail!.dayIndex : dayIndex
       if (hasNewIdx) {
         setDayIndex(detail!.dayIndex)
         setTodayDayIndex(detail!.dayIndex!)
       }
+
+      // If updated exercises are included in the event, update context immediately
+      // without a round-trip to the server (the DB save already happened before this fires)
+      if (detail?.planExercises && context) {
+        const updatedExercises = detail.planExercises.map((ex: any) => {
+          const existing = context.exercises.find(
+            e => e.name.toLowerCase().trim() === ex.name.toLowerCase().trim()
+          )
+          return existing ?? {
+            name: ex.name,
+            target: `${ex.sets}×${ex.reps}`,
+            last: null,
+            allTimePR: null,
+            suggestWeight: null,
+          }
+        })
+        setContext(prev => prev ? { ...prev, exercises: updatedExercises } : prev)
+        return
+      }
+
+      // Fallback: fetch from server (used for set-active-day changes)
       const fresh = await fetchTodayContext(workoutId!, idx)
       if (fresh) setContext(fresh)
     }

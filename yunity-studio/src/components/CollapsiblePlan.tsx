@@ -80,10 +80,13 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
     router.push(`/dashboard/fitness/workout/${workoutId}/log/${dayIdx}`)
   }
 
-  function notifyPlanChanged(dayIdx?: number) {
+  function notifyPlanChanged(dayIdx?: number, planExercises?: any[]) {
     const resolved = dayIdx !== undefined ? dayIdx : activeDayIdx
     window.dispatchEvent(new CustomEvent('yunity:plan-changed', {
-      detail: resolved !== null ? { dayIndex: resolved } : {},
+      detail: {
+        ...(resolved !== null ? { dayIndex: resolved } : {}),
+        ...(planExercises ? { planExercises } : {}),
+      },
     }))
   }
 
@@ -106,7 +109,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
         setCustomizeTexts(prev => ({ ...prev, [idx]: '' }))
         setCustomizeOpenIdx(null)
         toast.success(`Day ${idx + 1} updated!`)
-        notifyPlanChanged()
+        notifyPlanChanged(undefined, updatedDay.exercises)
       }
     } catch {
       toast.error('Failed to update. Please try again.')
@@ -206,10 +209,10 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
         setLocalDays(prev => prev.map((d, i) => i === idx ? updatedDay : d))
         cancelEditMode()
         toast.success('Exercises saved!')
-        notifyPlanChanged()
+        notifyPlanChanged(undefined, editExercises)
       }
-    } catch {
-      toast.error('Failed to save changes.')
+    } catch (e: any) {
+      toast.error(e?.message ? `Save failed: ${e.message}` : 'Failed to save changes.')
     } finally {
       setSavingEdit(false)
     }
