@@ -61,7 +61,7 @@ export default async function LandingPage({
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="h-14 rounded-full bg-slate-900 px-8 text-lg text-white shadow-lg transition-all hover:bg-slate-800">
-              <Link href="/login">
+              <Link href="/login?tab=signup">
                 Start Free <ArrowRight className="ml-2" size={20} />
               </Link>
             </Button>
@@ -330,7 +330,7 @@ export default async function LandingPage({
               </ul>
 
               <Button asChild variant="outline" className="h-13 w-full rounded-2xl border-slate-300 text-slate-700 hover:bg-slate-50">
-                <Link href="/login">Get Started Free</Link>
+                <Link href="/login?tab=signup">Get Started Free</Link>
               </Button>
             </div>
 
@@ -363,7 +363,7 @@ export default async function LandingPage({
               </ul>
 
               <Button asChild className="h-13 w-full rounded-2xl bg-white text-slate-900 hover:bg-slate-100">
-                <Link href="/login">Start Free Trial</Link>
+                <Link href="/login?tab=signup">Start Free Trial</Link>
               </Button>
             </div>
           </div>
