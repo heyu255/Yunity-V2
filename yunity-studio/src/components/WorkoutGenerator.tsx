@@ -22,9 +22,10 @@ interface WorkoutGeneratorProps {
   goal: string
   initialPlan: any
   initialPlanName?: string | null
+  editorMode?: boolean
 }
 
-export default function WorkoutGenerator({ isPremium, goal, initialPlan, initialPlanName }: WorkoutGeneratorProps) {
+export default function WorkoutGenerator({ isPremium, goal, initialPlan, initialPlanName, editorMode }: WorkoutGeneratorProps) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [plan, setPlan] = useState(initialPlan)
@@ -107,36 +108,35 @@ export default function WorkoutGenerator({ isPremium, goal, initialPlan, initial
 
       {/* Regenerate button + notes — only when showing a saved plan */}
       {plan && isSaved && (
-        <div className="animate-in slide-in-from-top-2 fade-in rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Current Plan</p>
-              <p className="font-bold text-slate-900">{activePlanName ?? 'My Workout Plan'}</p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleGenerate}
-              disabled={loading}
-              className="gap-2 font-semibold text-slate-600 hover:bg-slate-100"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw size={14} />}
-              New Plan
-            </Button>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-              <StickyNote size={13} className="text-slate-400" />
-              Notes for next plan <span className="font-normal">(optional)</span>
+        <div className="animate-in slide-in-from-top-2 fade-in space-y-3">
+          {/* Customization notes — prominent */}
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <StickyNote size={15} className="text-amber-500 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-amber-900">Customize your next plan</p>
+                <p className="text-xs text-amber-700">Tell the AI about injuries, equipment, preferences, or anything you want different.</p>
+              </div>
             </div>
             <Textarea
-              rows={2}
-              placeholder="e.g. I have a bad knee, dumbbells only, shorter sessions..."
+              rows={3}
+              placeholder="e.g. I have a bad knee, dumbbells only, shorter sessions, no pull-ups..."
               value={notes}
               onChange={e => setNotes(e.target.value)}
               disabled={loading}
+              className="border-amber-200 bg-white focus:ring-amber-400"
             />
           </div>
+
+          {/* Generate new plan button */}
+          <Button
+            onClick={handleGenerate}
+            disabled={loading}
+            className="w-full gap-2 bg-slate-900 hover:bg-slate-700 text-white font-semibold py-2.5"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw size={14} />}
+            {loading ? 'Generating...' : 'Generate a New Plan'}
+          </Button>
         </div>
       )}
 
@@ -173,8 +173,8 @@ export default function WorkoutGenerator({ isPremium, goal, initialPlan, initial
         </div>
       )}
 
-      {/* Plan tabs */}
-      {plan && (
+      {/* Plan tabs — hidden in editor mode to avoid duplicate weekly view */}
+      {plan && !editorMode && (
         <Tabs defaultValue={plan.days[0]?.day} className="w-full">
           <div className="overflow-x-auto pb-1">
           <TabsList className="grid grid-cols-7 w-full min-w-[420px] h-14 bg-slate-100 p-1.5 rounded-xl">

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:bretcontreras.com)",
+      "WebFetch(domain:www.myworkouts.io)",
+      "WebSearch",
+      "WebFetch(domain:hashimashi.com)",
+      "WebFetch(domain:www.trainuntamed.com)",
+      "WebFetch(domain:noobgains.com)",
+      "WebFetch(domain:www.exodus-strength.com)",
+      "WebFetch(domain:startingstrongman.com)"
+    ]
+  }
+}

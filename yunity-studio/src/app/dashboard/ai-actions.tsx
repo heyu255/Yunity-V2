@@ -3,6 +3,7 @@
 import OpenAI from 'openai'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getTrialStatus } from '@/utils/trial'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -68,7 +69,8 @@ export async function generateWorkoutPlan(notes?: string) {
     .select('*')
     .eq('id', user.id)
     .single()
-  if (!profile || !profile.is_premium) throw new Error("PREMIUM_REQUIRED")
+  const { isOnTrial } = getTrialStatus(user.created_at)
+  if (!profile || (!profile.is_premium && !isOnTrial)) throw new Error("PREMIUM_REQUIRED")
 
   const prompt = `
       Act as a World-Class Personal Trainer.

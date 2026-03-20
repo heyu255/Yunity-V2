@@ -1,10 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import WorkoutGenerator from '@/components/WorkoutGenerator'
-import { StartWorkoutPicker } from '@/components/StartWorkoutPicker'
-import { Card, CardContent } from '@/components/ui/card'
-import { History, ChevronRight, Calendar } from 'lucide-react'
+import { CollapsiblePlan } from '@/components/CollapsiblePlan'
+import { CollapsibleArchive } from '@/components/CollapsibleArchive'
+import { Calendar, Zap, BedDouble, TrendingUp, Play } from 'lucide-react'
+
+import { getTodayPlanContext } from './fitness-actions'
+import { ExerciseVideoButton } from '@/components/ExerciseVideoModal'
+import { getTranslations } from 'next-intl/server'
+import { getTrialStatus } from '@/utils/trial'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,102 +18,188 @@ export default async function FitnessPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-  const isPremium = profile?.is_premium ?? false
+  const [profileRes, workoutsRes] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('workouts').select('id, name, created_at, plan').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
+  ])
 
-  // Fetch all saved plans (need full plan data for StartWorkoutPicker)
-  const { data: allWorkouts } = await supabase
-    .from('workouts')
-    .select('id, name, created_at, plan')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(10)
+  const profile = profileRes.data
+  const isPremiumDb = profile?.is_premium ?? false
+  const { isOnTrial } = getTrialStatus(user.created_at)
+  const isPremium = isPremiumDb || isOnTrial
+  const allWorkouts = workoutsRes.data ?? []
 
-  const latestWorkout = allWorkouts && allWorkouts.length > 0 ? allWorkouts[0].plan : null
-  const latestWorkoutName = allWorkouts && allWorkouts.length > 0 ? allWorkouts[0].name : null
-  // Older plans for the history list (skip first — it's shown inline)
-  const olderWorkouts = allWorkouts && allWorkouts.length > 1 ? allWorkouts.slice(1) : []
+  const latestWorkout = allWorkouts.length > 0 ? allWorkouts[0].plan : null
+  const latestWorkoutId = allWorkouts.length > 0 ? allWorkouts[0].id : null
+  const latestWorkoutName = allWorkouts.length > 0 ? allWorkouts[0].name : null
+  const olderWorkouts = allWorkouts.length > 1 ? allWorkouts.slice(1) : []
+
+  const todayContext = latestWorkout?.days ? await getTodayPlanContext(latestWorkout.days) : null
+
+  // Find today's day index in the plan for the direct start link
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const todayName = DAY_NAMES[new Date().getDay()]
+  const todayDayIndex = latestWorkout?.days?.findIndex((d: any) => d.day === todayName) ?? -1
+
+  const canStartToday = todayContext && !todayContext.isRest && todayDayIndex >= 0 && latestWorkoutId
+
+  const t = await getTranslations('fitness')
+  const tCommon = await getTranslations('common')
+  const tGoals = await getTranslations('goals')
+
+  const goalLabel: Record<string, string> = {
+    lose: tGoals('lose'),
+    maintain: tGoals('maintain'),
+    gain: tGoals('gain'),
+  }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 pb-20">
-      {/* Header */}
-      <header className="flex justify-between items-end border-b pb-6">
-        <div>
-          <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-slate-900">
-            Fitness Dashboard
-          </h1>
-          <p className="text-slate-500 mt-2 text-base sm:text-lg">
-            {isPremium ? 'Your custom 7-day performance strategy is ready.' : 'Upgrade to unlock custom AI workout plans.'}
-          </p>
-        </div>
-        {isPremium && (
-          <span className="rounded-full bg-slate-900 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white">
-            Premium Member
-          </span>
-        )}
-      </header>
+    <div className="max-w-5xl mx-auto space-y-8 pb-20">
 
-      {/* ── Active Plan ─────────────────────────────────── */}
-      <section className="rounded-2xl border-2 border-slate-900 bg-white overflow-hidden">
-        {/* Section header bar */}
-        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
-            </span>
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Active Plan</span>
-          </div>
-          {allWorkouts && allWorkouts.length > 0 && (
-            <StartWorkoutPicker workouts={allWorkouts} />
-          )}
-        </div>
-        {/* Generator */}
-        <div className="p-6">
-          <WorkoutGenerator isPremium={isPremium} goal={profile?.goal} initialPlan={latestWorkout} initialPlanName={latestWorkoutName} />
-        </div>
-      </section>
+      {/* ── Hero Header ─────────────────────────────────── */}
+      <header className="relative rounded-2xl overflow-hidden bg-slate-900 px-5 py-7 sm:px-8 sm:py-9">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950" />
+        <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-emerald-500/5 blur-2xl" />
+        <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-violet-500/5 blur-2xl" />
 
-      {/* ── Past Plans ───────────────────────────────────── */}
-      {olderWorkouts.length > 0 && (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 overflow-hidden">
-          <div className="px-6 py-4 border-b border-dashed border-slate-300 flex items-center gap-2">
-            <History size={16} className="text-slate-400" />
-            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Plan Archive</h2>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+
+          {/* Left: title */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2.5">
+              {isPremiumDb && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                  <Zap size={10} /> Premium
+                </span>
+              )}
+              {!isPremiumDb && isOnTrial && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/20 border border-violet-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-400">
+                  <Zap size={10} /> Free Trial
+                </span>
+              )}
+              {profile?.goal && (
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                  {goalLabel[profile.goal] ?? profile.goal}
+                </span>
+              )}
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">{t('title')}</h1>
+            <p className="text-slate-400 mt-1 text-sm">
+              {isPremium ? t('subtitle_premium') : t('subtitle_free')}
+            </p>
           </div>
-          <div className="p-6 grid gap-3">
-            {olderWorkouts.map((workout) => (
-              <Link
-                key={workout.id}
-                href={`/dashboard/fitness/workout/${workout.id}`}
-                className="group block"
-              >
-                <Card className="cursor-pointer bg-white border-slate-200 transition-all hover:border-slate-400 hover:shadow-sm">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-slate-100 p-2 rounded-lg transition-colors group-hover:bg-slate-200">
-                        <Calendar size={18} className="text-slate-400 group-hover:text-slate-600" />
+
+          {/* Right: Today's context card */}
+          {todayContext && (
+            <div className="w-full sm:w-72 rounded-xl bg-white/5 border border-white/10 overflow-hidden shrink-0">
+              {/* Card header */}
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10">
+                {todayContext.isRest ? (
+                  <>
+                    <BedDouble size={13} className="text-slate-400" />
+                    <span className="text-xs font-bold text-slate-300">{tCommon('rest_day')}</span>
+                    <span className="text-xs text-slate-500 ml-auto">{todayContext.dayName}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="relative flex h-1.5 w-1.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    <span className="text-xs font-bold text-slate-300 truncate">
+                      {todayContext.dayName} — {todayContext.focus}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Exercise rows */}
+              {!todayContext.isRest && (
+                <div className="divide-y divide-white/5">
+                  {todayContext.exercises.map(ex => (
+                    <div key={ex.name} className="flex items-center justify-between gap-2 px-4 py-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-xs text-slate-400 truncate">{ex.name}</span>
+                        <ExerciseVideoButton exerciseName={ex.name} />
                       </div>
-                      <div>
-                        <p className="font-semibold text-slate-700 transition-colors group-hover:text-slate-900">
-                          {workout.name}
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          {new Date(workout.created_at).toLocaleDateString()}
-                        </p>
+                      <div className="shrink-0 text-right">
+                        {ex.last ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-slate-300">
+                              {ex.last.weight}{ex.last.unit}×{ex.last.reps}
+                            </span>
+                            {ex.suggestWeight && (
+                              <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 rounded px-1.5 py-0.5">
+                                <TrendingUp size={9} /> {ex.suggestWeight}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500">{ex.target}</span>
+                        )}
+                        {ex.allTimePR && (
+                          <p className="text-[10px] text-amber-400/70 text-right">
+                            PR {ex.allTimePR.weight}{ex.last?.unit ?? 'kg'}×{ex.allTimePR.reps}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <ChevronRight size={18} className="text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-slate-400" />
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+                  ))}
+
+                  {todayContext.hasHistory && todayContext.totalVolumeLastSession > 0 && (
+                    <div className="px-4 py-2 flex items-center justify-between">
+                      <span className="text-[10px] text-slate-500 uppercase tracking-wide">Last session vol.</span>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {todayContext.totalVolumeLastSession.toLocaleString()} kg
+                      </span>
+                    </div>
+                  )}
+
+                  {!todayContext.hasHistory && (
+                    <div className="px-4 py-2 text-center">
+                      <p className="text-[10px] text-slate-500">{t('log_to_track')}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Start Today's Workout CTA */}
+              {canStartToday ? (
+                <Link
+                  href={`/dashboard/fitness/workout/${latestWorkoutId}/log/${todayDayIndex}`}
+                  className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-4 py-2.5 text-sm font-bold text-white"
+                >
+                  <Play size={13} fill="white" /> {t('start_workout')}
+                </Link>
+              ) : todayContext.isRest ? (
+                <div className="px-4 py-3 text-center">
+                  <p className="text-xs text-slate-500">{t('recover')}</p>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* ── Collapsible Plan ─────────────────────────────── */}
+      <CollapsiblePlan
+        isPremium={isPremium}
+        goal={profile?.goal}
+        initialPlan={latestWorkout}
+        initialPlanName={latestWorkoutName}
+        workoutId={latestWorkoutId}
+      />
+
+
+      {/* ── Plan Archive ─────────────────────────────────── */}
+      <CollapsibleArchive workouts={olderWorkouts} />
+
+      {allWorkouts.length === 0 && !isPremium && (
+        <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-2xl">
+          <Calendar size={36} className="mx-auto text-slate-300 mb-3" />
+          <p className="font-bold text-slate-700">No plans yet</p>
+          <p className="text-slate-400 text-sm mt-1">Upgrade to premium to generate your first AI plan</p>
+        </div>
       )}
     </div>
   )

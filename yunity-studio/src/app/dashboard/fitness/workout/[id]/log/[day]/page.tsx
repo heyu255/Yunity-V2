@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WorkoutLogger } from '@/components/WorkoutLogger'
+import { getExercisePRs } from '@/app/dashboard/fitness/fitness-actions'
 
 interface Props {
   params: Promise<{ id: string; day: string }>
@@ -36,11 +37,28 @@ export default async function WorkoutLogPage({ params }: Props) {
     redirect(`/dashboard/fitness/workout/${id}`)
   }
 
+  const exerciseNames = dayData.exercises.map((ex: any) => ex.name)
+  const previousBests = await getExercisePRs(exerciseNames)
+
+  // All exercises from the plan across all days (for the add-exercise dropdown)
+  const allPlanExercises: { name: string; sets: number; reps: string; rest: string }[] =
+    (workoutPlan.days ?? []).flatMap((d: any) => d.exercises ?? [])
+
+  // Dedupe by name, exclude exercises already in today's session
+  const todayNames = new Set(dayData.exercises.map((e: any) => e.name.toLowerCase()))
+  const seen = new Set<string>()
+  const availableExercises = allPlanExercises.filter(ex => {
+    const key = ex.name.toLowerCase()
+    if (todayNames.has(key) || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-20 px-4">
-      <Link href={`/dashboard/fitness/workout/${id}`}>
+      <Link href="/dashboard/fitness">
         <Button variant="ghost" className="gap-2 pl-0 text-slate-500 hover:text-slate-900">
-          <ChevronLeft size={16} /> Back to Plan
+          <ChevronLeft size={16} /> Back to Dashboard
         </Button>
       </Link>
 
@@ -57,6 +75,8 @@ export default async function WorkoutLogPage({ params }: Props) {
         dayIndex={dayIndex}
         dayName={dayData.day}
         exercises={dayData.exercises}
+        previousBests={previousBests}
+        availableExercises={availableExercises}
       />
     </div>
   )
