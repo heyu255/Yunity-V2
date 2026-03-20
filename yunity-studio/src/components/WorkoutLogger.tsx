@@ -100,17 +100,16 @@ export function WorkoutLogger({
   const [allExercises, setAllExercises] = useState<Exercise[]>(exercises)
   const [logs, setLogs] = useState<ExerciseState[]>(() => initLogs(exercises))
 
-  const [unit, setUnit] = useState<'kg' | 'lbs'>('kg')
+  const [unit, setUnit] = useState<'kg' | 'lbs'>(() => {
+    if (typeof window === 'undefined') return 'kg'
+    const saved = localStorage.getItem('yunity_weight_unit')
+    return (saved === 'kg' || saved === 'lbs') ? saved : 'kg'
+  })
   const [submitting, setSubmitting] = useState(false)
   const [timer, setTimer] = useState<{ seconds: number; exerciseName: string } | null>(null)
   const [newPRs, setNewPRs] = useState<Set<string>>(new Set())
 
   const [showAddForm, setShowAddForm] = useState(false)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('yunity_weight_unit')
-    if (saved === 'kg' || saved === 'lbs') setUnit(saved)
-  }, [])
 
   function toggleUnit(u: 'kg' | 'lbs') {
     setUnit(u)
@@ -126,25 +125,32 @@ export function WorkoutLogger({
       )
     )
 
-    if (field === 'completed' && value === true) {
+    if (field === 'completed') {
       const exName = allExercises[exIdx]?.name ?? logs[exIdx].name
 
-      if (!isCardio(exName)) {
-        const currentSet = logs[exIdx].sets[setIdx]
-        const weight = parseFloat(currentSet.weight)
-        const reps = parseInt(currentSet.reps)
+      if (value === true) {
+        if (!isCardio(exName)) {
+          const currentSet = logs[exIdx].sets[setIdx]
+          const weight = parseFloat(currentSet.weight)
+          const reps = parseInt(currentSet.reps)
 
-        if (weight > 0 && reps > 0) {
-          const oneRM = calcOneRM(weight, reps)
-          const exKey = logs[exIdx].name.toLowerCase().trim()
-          const prevBest = previousBests[exKey]
-          if (!prevBest || oneRM > prevBest.oneRM) {
-            setNewPRs(prev => new Set([...prev, exKey]))
+          if (weight > 0 && reps > 0) {
+            // Normalize to kg for consistent cross-unit PR comparison
+            const weightKg = unit === 'lbs' ? weight * 0.453592 : weight
+            const oneRM = calcOneRM(weightKg, reps)
+            const exKey = logs[exIdx].name.toLowerCase().trim()
+            const prevBest = previousBests[exKey]
+            if (!prevBest || oneRM > prevBest.oneRM) {
+              setNewPRs(prev => new Set([...prev, exKey]))
+            }
           }
-        }
 
-        const restSecs = parseRestSeconds(allExercises[exIdx]?.rest ?? '', exName)
-        setTimer({ seconds: restSecs, exerciseName: exName })
+          const restSecs = parseRestSeconds(allExercises[exIdx]?.rest ?? '', exName)
+          setTimer({ seconds: restSecs, exerciseName: exName })
+        }
+      } else {
+        // Un-completing a set cancels the rest timer
+        setTimer(null)
       }
     }
   }

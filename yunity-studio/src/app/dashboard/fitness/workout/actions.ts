@@ -101,4 +101,5 @@ export async function logWorkout(
   if (error) throw new Error(error.message)
 
   revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
+  revalidatePath('/dashboard/fitness')
 }

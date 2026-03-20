@@ -61,7 +61,9 @@ export async function getPersonalRecords(): Promise<Record<string, PR>> {
       if (!key) continue
       for (const set of (ex.sets ?? [])) {
         if (!set.completed || !set.weight || !set.reps) continue
-        const oneRM = set.weight * (1 + set.reps / 30)
+        // Normalize to kg for consistent cross-unit comparison
+        const weightKg = log.unit === 'lbs' ? set.weight * 0.453592 : set.weight
+        const oneRM = weightKg * (1 + set.reps / 30)
         if (!prs[key] || oneRM > prs[key].oneRM) {
           prs[key] = { weight: set.weight, reps: set.reps, unit: log.unit, oneRM }
         }
@@ -118,12 +120,13 @@ export async function getLastSessionForExercises(
       if (!completedSets.length) continue
 
       const heaviest = completedSets.sort((a: any, b: any) => b.weight - a.weight)[0]
+      const increment = log.unit === 'lbs' ? 5 : 2.5
       result[key] = {
         completedSets: completedSets.length,
         weight: heaviest.weight,
         reps: heaviest.reps,
         unit: log.unit,
-        suggestWeight: Math.round((heaviest.weight + 2.5) * 2) / 2,
+        suggestWeight: Math.round((heaviest.weight + increment) * 2) / 2,
       }
     }
     if (normalizedNames.every(n => result[n])) break
@@ -136,7 +139,7 @@ export type TodayExercise = {
   name: string
   target: string
   last: { weight: number; reps: number; unit: string; totalVolume: number } | null
-  allTimePR: { weight: number; reps: number; oneRM: number } | null
+  allTimePR: { weight: number; reps: number; oneRM: number; unit: string } | null
   suggestWeight: number | null
 }
 
@@ -179,7 +182,7 @@ export async function getTodayPlanContext(planDays: any[], dayIndexOverride?: nu
 
   if (!logs) return null
 
-  const exercises = todayDay.exercises.slice(0, 5)
+  const exercises = todayDay.exercises
   const result: TodayExercise[] = []
   let totalVolumeLastSession = 0
 
@@ -203,17 +206,19 @@ export async function getTodayPlanContext(planDays: any[], dayIndexOverride?: nu
         totalVolumeLastSession += vol
       }
 
-      // All-time PR (best 1RM across all logs)
+      // All-time PR (best 1RM across all logs, normalized to kg for comparison)
       for (const set of completedSets) {
-        const oneRM = set.weight * (1 + set.reps / 30)
+        const weightKg = log.unit === 'lbs' ? set.weight * 0.453592 : set.weight
+        const oneRM = weightKg * (1 + set.reps / 30)
         if (!allTimePR || oneRM > allTimePR.oneRM) {
-          allTimePR = { weight: set.weight, reps: set.reps, oneRM: Math.round(oneRM * 10) / 10 }
+          allTimePR = { weight: set.weight, reps: set.reps, oneRM: Math.round(oneRM * 10) / 10, unit: log.unit }
         }
       }
     }
 
-    // Progressive overload suggestion: +2.5kg
-    const suggestWeight = lastSession ? Math.round((lastSession.weight + 2.5) * 2) / 2 : null
+    // Progressive overload suggestion: +2.5kg or +5lbs
+    const increment = lastSession?.unit === 'lbs' ? 5 : 2.5
+    const suggestWeight = lastSession ? Math.round((lastSession.weight + increment) * 2) / 2 : null
 
     result.push({ name: ex.name, target: `${ex.sets}×${ex.reps}`, last: lastSession, allTimePR, suggestWeight })
   }

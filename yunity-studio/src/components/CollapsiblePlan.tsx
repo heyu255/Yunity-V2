@@ -99,6 +99,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
         setCustomizeTexts(prev => ({ ...prev, [idx]: '' }))
         setCustomizeOpenIdx(null)
         toast.success(`Day ${idx + 1} updated!`)
+        router.refresh()
       }
     } catch {
       toast.error('Failed to update. Please try again.')
@@ -122,7 +123,13 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
         setActiveDayIdx(newIdx)
         document.cookie = `yunity_active_day=${workoutId}:${newIdx}; path=/; max-age=${60 * 60 * 24 * 30}`
       }
+      // Adjust editModeIdx if a day before/at it was removed
+      if (editModeIdx !== null) {
+        if (editModeIdx === idx) cancelEditMode()
+        else if (editModeIdx > idx) setEditModeIdx(editModeIdx - 1)
+      }
       toast.success('Day removed')
+      router.refresh()
     } catch {
       toast.error('Failed to remove day.')
     } finally {
@@ -141,6 +148,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
         setAddDayFocus('')
         setShowAddDay(false)
         toast.success(`New day added: ${focus}`)
+        router.refresh()
       }
     } catch {
       toast.error('Failed to add day.')
@@ -191,6 +199,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
         setLocalDays(prev => prev.map((d, i) => i === idx ? updatedDay : d))
         cancelEditMode()
         toast.success('Exercises saved!')
+        router.refresh()
       }
     } catch {
       toast.error('Failed to save changes.')

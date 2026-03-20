@@ -162,7 +162,7 @@ export default async function FitnessPage() {
                             </span>
                             {ex.suggestWeight && (
                               <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 rounded px-1.5 py-0.5">
-                                <TrendingUp size={9} /> {ex.suggestWeight}
+                                <TrendingUp size={9} /> {ex.suggestWeight}{ex.last?.unit}
                               </span>
                             )}
                           </div>
@@ -171,7 +171,7 @@ export default async function FitnessPage() {
                         )}
                         {ex.allTimePR && (
                           <p className="text-[10px] text-amber-400/70 text-right">
-                            PR {ex.allTimePR.weight}{ex.last?.unit ?? 'kg'}×{ex.allTimePR.reps}
+                            PR {ex.allTimePR.weight}{ex.allTimePR.unit}×{ex.allTimePR.reps}
                           </p>
                         )}
                       </div>
