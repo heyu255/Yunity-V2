@@ -161,4 +161,4 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## 📄 License
 
-This project is proprietary. All rights reserved by **Yunity Studio**.
+This project is proprietary. All rights reserved by **Yunity Studio LLC**.

@@ -83,223 +83,175 @@ export default async function LandingPage({
       <section id="how-it-works" className="bg-white py-24">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-5xl">How it works</h2>
-            <p className="mx-auto max-w-2xl text-slate-600">
-              From your first session to long-term results — here's how Yunity keeps improving with you.
-            </p>
+            <h2 className="mb-3 text-3xl font-semibold tracking-tight md:text-5xl">How it works</h2>
+            <p className="text-slate-500 text-sm">Everything you need. Nothing you don't.</p>
           </div>
 
-          {/* Steps */}
-          <div className="relative grid gap-8 md:grid-cols-4 mb-20">
-            {[
-              { step: '01', icon: <Brain size={20} className="text-violet-600" />, color: 'bg-violet-50 border-violet-200', title: 'Set your goal', desc: 'Tell us your target — lose fat, build muscle, or maintain. We calibrate your calorie target, macros, and plan intensity around it.' },
-              { step: '02', icon: <Sparkles size={20} className="text-emerald-600" />, color: 'bg-emerald-50 border-emerald-200', title: 'Get a plan built for you', desc: 'AI reads your PR history, recent session volume, and past plans before generating your next workout — not a generic template.' },
-              { step: '03', icon: <Dumbbell size={20} className="text-blue-600" />, color: 'bg-blue-50 border-blue-200', title: 'Train, log & eat right', desc: 'Log sets in real time. Calories burned flow straight to your nutrition dashboard. Your net intake updates the moment you finish.' },
-              { step: '04', icon: <TrendingUp size={20} className="text-amber-600" />, color: 'bg-amber-50 border-amber-200', title: 'Get smarter every week', desc: 'Each session adds to your history. The next plan you generate will know your new PRs, new volume baseline, and what to push next.' },
-            ].map((s) => (
-              <div key={s.step} className="flex flex-col gap-4">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${s.color}`}>
-                  {s.icon}
-                </div>
-                <span className="text-xs font-bold tracking-widest text-slate-400">{s.step}</span>
-                <h3 className="text-lg font-semibold text-slate-900">{s.title}</h3>
-                <p className="text-sm leading-relaxed text-slate-500">{s.desc}</p>
+          {/* ── 1. Nutrition ── */}
+          <div className="mb-20">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-500">
+                <Utensils size={15} className="text-white" />
               </div>
-            ))}
+              <h3 className="text-lg font-bold text-slate-900">Nutrition</h3>
+            </div>
+
+            {/* Visual: nutrition dashboard mock */}
+            <div className="rounded-2xl bg-slate-900 p-6 mb-6 max-w-sm">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Today's Nutrition</p>
+              <div className="space-y-1.5 mb-4">
+                <div className="flex justify-between text-xs">
+                  <span className="text-white font-bold">1,420 <span className="font-normal text-slate-400">kcal eaten</span></span>
+                  <span className="text-slate-400">580 left · 2,000 target</span>
+                </div>
+                <div className="h-2 rounded-full bg-white/10">
+                  <div className="h-full w-[71%] rounded-full bg-emerald-400" />
+                </div>
+              </div>
+              <div className="flex gap-2 mb-4">
+                <span className="text-[11px] font-semibold rounded-full px-2 py-0.5 bg-blue-500/20 text-blue-300">Protein 98g <span className="opacity-60">/ 150g</span></span>
+                <span className="text-[11px] font-semibold rounded-full px-2 py-0.5 bg-amber-500/20 text-amber-300">Carbs 160g <span className="opacity-60">/ 225g</span></span>
+                <span className="text-[11px] font-semibold rounded-full px-2 py-0.5 bg-rose-500/20 text-rose-300">Fats 38g <span className="opacity-60">/ 56g</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-orange-300 font-semibold">
+                <Flame size={11} /> 420 kcal burned · <span className="text-slate-300">Net: 1,000 kcal</span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { icon: <Utensils size={14} className="text-orange-500" />, title: 'Daily meal log', desc: 'Add, edit, or delete meals. Calories and macros update live.' },
+                { icon: <Brain size={14} className="text-violet-500" />, title: 'AI nutrition estimator', desc: 'Type what you ate — AI fills in the calories and macros.' },
+                { icon: <Sparkles size={14} className="text-emerald-500" />, title: 'Meal idea generator', desc: '3 AI meal suggestions calibrated to your remaining targets.' },
+                { icon: <CheckCircle2 size={14} className="text-blue-500" />, title: 'Custom macro targets', desc: 'Set your own protein, carbs, and fat goals — or auto-derive.' },
+              ].map(f => (
+                <div key={f.title} className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white">{f.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{f.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* ── Personalization Spotlight ── */}
-          <div className="mb-20 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 p-8 sm:p-12">
-            <div className="flex flex-col lg:flex-row gap-10 items-start">
+          {/* ── 2. Fitness ── */}
+          <div className="mb-20">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500">
+                <Dumbbell size={15} className="text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Fitness</h3>
+              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">Premium</span>
+            </div>
+
+            {/* Personalization spotlight */}
+            <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-emerald-950 p-6 mb-6 flex flex-col sm:flex-row gap-6 items-start">
               <div className="flex-1">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-400 uppercase tracking-widest mb-5">
-                  <Sparkles size={11} /> AI Personalization
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-3">
+                  <Sparkles size={9} /> AI Personalization
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 leading-tight">
-                  Every plan remembers<br />what you've done
-                </h3>
-                <p className="text-slate-400 leading-relaxed mb-8 max-w-md">
-                  Most fitness apps give everyone the same generic template. Before generating your next plan, Yunity reads your actual training history — so every new week is built specifically for where you are right now.
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { label: 'Your PR records', desc: 'Knows your strongest lifts' },
-                    { label: 'Recent session volume', desc: 'How hard you trained last week' },
-                    { label: 'Previous plan structure', desc: 'Builds on what worked' },
-                    { label: 'Your goal', desc: 'Fat loss, maintain, or gain' },
-                  ].map(item => (
-                    <div key={item.label} className="rounded-xl bg-white/5 border border-white/10 p-3.5">
-                      <p className="text-xs font-bold text-white">{item.label}</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-white font-bold mb-1">Every plan is built from your history</p>
+                <p className="text-slate-400 text-xs leading-relaxed">Before generating your next split, the AI reads your PRs, recent volume, and past plan — not a generic template.</p>
               </div>
-
-              <div className="flex-1 w-full space-y-3">
-                <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Brain size={13} className="text-violet-400" />
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">AI reads your training data</span>
-                  </div>
-                  <div className="space-y-2">
-                    {[
-                      '🏋️ Bench Press PR: 90 kg × 5 — set last week',
-                      '📈 Squat volume up 15% over 3 sessions',
-                      '🔁 Previous split: Push / Pull / Legs, 6 days',
-                      '💪 Shoulder press stalled — needs a reset',
-                    ].map(line => (
-                      <div key={line} className="text-[11px] text-slate-400 bg-slate-800/60 rounded-lg px-3 py-2 font-mono">{line}</div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center py-1">
-                  <div className="flex items-center gap-2 text-emerald-500/60">
-                    <div className="h-px w-16 bg-emerald-500/30" />
-                    <ArrowRight size={15} className="text-emerald-400" />
-                    <span className="text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest">generates your next plan</span>
-                    <div className="h-px w-16 bg-emerald-500/30" />
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles size={13} className="text-emerald-400" />
-                    <span className="text-xs font-bold text-emerald-300">Your personalised next plan</span>
-                  </div>
-                  <p className="text-[12px] text-slate-400 leading-relaxed">Progressive overload baked in. Volume calibrated to your recovery. Stalled lifts swapped or deloaded. Exercises you respond well to kept in.</p>
+              <div className="flex-1 w-full space-y-1.5">
+                {[
+                  '🏋️ Bench PR: 90 kg × 5 — last week',
+                  '📈 Squat volume up 15% this month',
+                  '🔁 Previous: PPL split, 6 days',
+                ].map(l => (
+                  <div key={l} className="text-[11px] text-slate-400 bg-white/5 border border-white/10 rounded-lg px-3 py-2 font-mono">{l}</div>
+                ))}
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="h-px flex-1 bg-emerald-500/30" />
+                  <ArrowRight size={12} className="text-emerald-400" />
+                  <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Your next plan</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* ── Workout Features ── */}
-          <div className="mb-16">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900">
-                <Dumbbell size={15} className="text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900">Workout — built for progression</h3>
-              <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">Premium</span>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {[
-                { icon: <Sparkles size={16} className="text-violet-500" />, title: 'History-aware AI plan', desc: 'Reads your PRs, recent volume, and past plans before generating your next split — so it always moves you forward.' },
-                { icon: <SlidersHorizontal size={16} className="text-emerald-500" />, title: 'Fully customisable days', desc: 'Choose which day to follow, reorder, remove exercises you hate, or add new ones. Your plan, your rules.' },
-                { icon: <Play size={16} className="text-blue-500" />, title: 'Exercise video demos', desc: 'Every exercise has a built-in tutorial so you always know exactly how to perform it safely.' },
-                { icon: <Timer size={16} className="text-indigo-500" />, title: 'Smart rest timer', desc: 'Rest periods automatically adapt — longer for big compounds like squats, shorter for isolation moves.' },
-                { icon: <Trophy size={16} className="text-amber-500" />, title: 'Live PR detection', desc: 'Hit a personal best mid-workout and we flag it instantly. All-time PRs tracked per exercise.' },
-                { icon: <CalendarDays size={16} className="text-slate-500" />, title: "Today's plan at a glance", desc: "Your dashboard shows today's exercises, last session's weights, and the exact progressive overload to aim for." },
-              ].map((f) => (
-                <div key={f.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white">
-                    {f.icon}
+                { icon: <SlidersHorizontal size={14} className="text-emerald-500" />, title: 'Pick your day, customise it', desc: 'Choose any plan day to train. Edit, remove, or add days with AI.' },
+                { icon: <Play size={14} className="text-blue-500" />, title: 'Exercise video demos', desc: 'Built-in tutorial for every exercise. YouTube fallback always available.' },
+                { icon: <Timer size={14} className="text-indigo-500" />, title: 'Smart rest timer', desc: 'Auto-starts after each set. Longer for compounds, shorter for isolation.' },
+                { icon: <Trophy size={14} className="text-amber-500" />, title: 'Live PR detection', desc: 'Flags a new personal best the moment it happens mid-session.' },
+                { icon: <CalendarDays size={14} className="text-slate-500" />, title: "Today's plan at a glance", desc: "Dashboard shows last session weights + progressive overload suggestion." },
+                { icon: <Flame size={14} className="text-orange-500" />, title: 'Calorie burn per session', desc: 'MET-based estimate synced live to your nutrition dashboard.' },
+              ].map(f => (
+                <div key={f.title} className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white">{f.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{f.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{f.desc}</p>
                   </div>
-                  <h4 className="mb-1.5 text-sm font-semibold text-slate-900">{f.title}</h4>
-                  <p className="text-xs leading-relaxed text-slate-500">{f.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── Progress Features ── */}
-          <div className="mb-16">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900">
-                <BarChart2 size={15} className="text-violet-400" />
+          {/* ── 3. Progress ── */}
+          <div className="mb-20">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500">
+                <BarChart2 size={15} className="text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Progress — data that actually means something</h3>
+              <h3 className="text-lg font-bold text-slate-900">Progress</h3>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { icon: <Flame size={16} className="text-orange-500" />, title: 'Calorie burn estimate', desc: 'Every session automatically calculates calories burned using the MET formula — and feeds it to your nutrition dashboard.' },
-                { icon: <Trophy size={16} className="text-amber-500" />, title: 'PR history', desc: 'Every personal record logged for every exercise, forever. The AI uses these when building your next plan.' },
-                { icon: <TrendingUp size={16} className="text-emerald-500" />, title: 'Volume trends', desc: 'See how your total weekly training volume compares to last week — the clearest signal of real progress.' },
-                { icon: <BarChart2 size={16} className="text-violet-500" />, title: 'Predicted 1RM', desc: 'Based on your logged sets, we estimate your 1-rep max per exercise and track it over time.' },
-              ].map((f) => (
-                <div key={f.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white">
-                    {f.icon}
+                { icon: <Trophy size={14} className="text-amber-500" />, title: 'PR history', desc: 'Every personal record per exercise — the AI uses these when building your next plan.' },
+                { icon: <TrendingUp size={14} className="text-emerald-500" />, title: 'Volume trends', desc: 'Weekly training volume vs. last week — the clearest signal of real progress.' },
+                { icon: <BarChart2 size={14} className="text-violet-500" />, title: 'Predicted 1RM', desc: 'Estimated 1-rep max per exercise, tracked over time from your logged sets.' },
+                { icon: <Flame size={14} className="text-orange-500" />, title: 'Calorie burn history', desc: 'Total calories burned per session, logged alongside your exercise data.' },
+              ].map(f => (
+                <div key={f.title} className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white">{f.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{f.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{f.desc}</p>
                   </div>
-                  <h4 className="mb-1.5 text-sm font-semibold text-slate-900">{f.title}</h4>
-                  <p className="text-xs leading-relaxed text-slate-500">{f.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── Ecosystem ── */}
-          <div className="mb-16 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 sm:p-12">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-500 mb-4">
-                <Link2 size={12} /> Workout + Nutrition
+          {/* ── 4. Ecosystem ── */}
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 sm:p-10">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 mb-3">
+                <Link2 size={11} /> The full picture
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">One ecosystem that works as one</h3>
-              <p className="text-slate-500 text-sm max-w-xl mx-auto">
-                Your training and diet don't live in separate silos. Calories you burn in the gym automatically update your nutrition targets — so your net intake is always accurate.
-              </p>
+              <h3 className="text-xl font-bold text-slate-900">Workout + Nutrition, in sync</h3>
+              <p className="text-slate-500 text-sm mt-1">Calories burned in the gym flow straight to your nutrition dashboard. No manual entry.</p>
             </div>
-
-            <div className="grid sm:grid-cols-3 gap-4 items-start">
-              <div className="rounded-2xl bg-slate-900 p-6 text-white">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 border border-emerald-500/30 mb-4">
-                  <Dumbbell size={16} className="text-emerald-400" />
+            <div className="grid sm:grid-cols-3 gap-4 items-center">
+              <div className="rounded-xl bg-slate-900 p-5 text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 border border-emerald-500/30 mb-3">
+                  <Dumbbell size={14} className="text-emerald-400" />
                 </div>
-                <h4 className="font-bold text-white mb-1.5">You train</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">Log your sets and finish the session. Yunity estimates calories burned from your exercises, sets completed, and body weight.</p>
-                <div className="mt-4 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-[11px] text-slate-400 font-mono">
-                  🔥 ~420 kcal burned
-                </div>
+                <p className="font-bold text-sm mb-1">You finish a workout</p>
+                <div className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-[11px] text-slate-400 font-mono mt-3">🔥 ~420 kcal burned</div>
               </div>
-
-              <div className="flex sm:flex-col items-center justify-center gap-3 py-4 sm:py-0">
-                <div className="hidden sm:block h-px w-full bg-gradient-to-r from-slate-200 via-emerald-300 to-slate-200" />
-                <div className="flex items-center gap-1.5 rounded-full bg-white border border-slate-200 shadow-sm px-3 py-1.5">
-                  <ArrowRight size={13} className="text-emerald-500 hidden sm:block" />
+              <div className="flex sm:flex-col items-center justify-center gap-2">
+                <div className="hidden sm:block h-px w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+                <div className="flex items-center gap-1.5 rounded-full bg-white border border-slate-200 shadow-sm px-3 py-1">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">auto-synced</span>
-                  <ArrowRight size={13} className="text-emerald-500 hidden sm:block" />
+                  <ArrowRight size={11} className="text-emerald-500" />
                 </div>
-                <div className="hidden sm:block h-px w-full bg-gradient-to-r from-slate-200 via-orange-300 to-slate-200" />
+                <div className="hidden sm:block h-px w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
               </div>
-
-              <div className="rounded-2xl bg-white border border-slate-200 p-6">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 border border-orange-200 mb-4">
-                  <Utensils size={16} className="text-orange-500" />
+              <div className="rounded-xl bg-white border border-slate-200 p-5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10 border border-orange-200 mb-3">
+                  <Utensils size={14} className="text-orange-500" />
                 </div>
-                <h4 className="font-bold text-slate-900 mb-1.5">Your nutrition updates</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">Your nutrition dashboard shows calories eaten, burned, and your true net intake — so you know exactly how much fuel you need to recover and grow.</p>
-                <div className="mt-4 space-y-1.5">
+                <p className="font-bold text-sm text-slate-900 mb-1">Your nutrition updates</p>
+                <div className="space-y-1.5 mt-3">
                   <div className="rounded-lg bg-slate-50 border border-slate-100 px-3 py-1.5 text-[11px] text-slate-500 font-mono">Eaten: 1,850 kcal</div>
-                  <div className="rounded-lg bg-orange-50 border border-orange-100 px-3 py-1.5 text-[11px] text-orange-600 font-mono">Burned: 420 kcal · Net: 1,430</div>
+                  <div className="rounded-lg bg-orange-50 border border-orange-100 px-3 py-1.5 text-[11px] text-orange-600 font-mono">Burned: 420 · Net: 1,430</div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* ── Nutrition Features ── */}
-          <div>
-            <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900">
-                <Utensils size={15} className="text-orange-400" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900">Nutrition — eat with intention</h3>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { icon: <Brain size={16} className="text-violet-500" />, title: 'AI nutrition estimator', desc: 'Type what you ate in plain language — "2 eggs and toast" — and AI estimates the calories and macros instantly.' },
-                { icon: <Sparkles size={16} className="text-emerald-500" />, title: 'Meal idea generator', desc: 'Stuck on what to eat? Get 3 AI-suggested meals for any slot, calibrated to your remaining macros for the day.' },
-                { icon: <CheckCircle2 size={16} className="text-blue-500" />, title: 'Custom macro targets', desc: 'Set your own protein, carb, and fat targets. Or let us derive them from your calorie goal automatically.' },
-                { icon: <CalendarDays size={16} className="text-amber-500" />, title: 'Daily meal log', desc: 'Add, edit, or delete any meal throughout the day. Totals update in real time with a visual calorie progress bar.' },
-              ].map((f) => (
-                <div key={f.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white">
-                    {f.icon}
-                  </div>
-                  <h4 className="mb-1.5 text-sm font-semibold text-slate-900">{f.title}</h4>
-                  <p className="text-xs leading-relaxed text-slate-500">{f.desc}</p>
-                </div>
-              ))}
             </div>
           </div>
         </div>
