@@ -81,8 +81,9 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
   }
 
   function notifyPlanChanged(dayIdx?: number) {
+    const resolved = dayIdx !== undefined ? dayIdx : activeDayIdx
     window.dispatchEvent(new CustomEvent('yunity:plan-changed', {
-      detail: { dayIndex: dayIdx !== undefined ? dayIdx : activeDayIdx },
+      detail: resolved !== null ? { dayIndex: resolved } : {},
     }))
   }
 

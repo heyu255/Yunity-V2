@@ -43,10 +43,11 @@ export function TodayWorkoutCard({
     async function handlePlanChanged(e: Event) {
       const detail = (e as CustomEvent).detail as { dayIndex?: number } | undefined
       // Use day index from event (set-as-today) or current state
-      const idx = detail?.dayIndex !== undefined ? detail.dayIndex : dayIndex
-      if (detail?.dayIndex !== undefined) {
-        setDayIndex(detail.dayIndex)
-        setTodayDayIndex(detail.dayIndex)
+      const hasNewIdx = detail?.dayIndex !== undefined && detail.dayIndex !== null
+      const idx = hasNewIdx ? detail!.dayIndex : dayIndex
+      if (hasNewIdx) {
+        setDayIndex(detail!.dayIndex)
+        setTodayDayIndex(detail!.dayIndex!)
       }
       const fresh = await fetchTodayContext(workoutId!, idx)
       if (fresh) setContext(fresh)
