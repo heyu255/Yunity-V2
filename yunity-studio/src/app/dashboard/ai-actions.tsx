@@ -288,6 +288,32 @@ Return ONLY a JSON object:
   return newDay
 }
 
+export async function updateWorkoutDay(workoutId: string, dayIndex: number, exercises: any[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: workout } = await supabase
+    .from('workouts')
+    .select('plan')
+    .eq('id', workoutId)
+    .eq('user_id', user.id)
+    .single()
+  if (!workout?.plan) return null
+
+  const updatedDays = [...workout.plan.days]
+  updatedDays[dayIndex] = { ...updatedDays[dayIndex], exercises }
+
+  await supabase
+    .from('workouts')
+    .update({ plan: { ...workout.plan, days: updatedDays } })
+    .eq('id', workoutId)
+    .eq('user_id', user.id)
+
+  revalidatePath('/dashboard/fitness')
+  return updatedDays[dayIndex]
+}
+
 export async function saveWorkoutPlan(name: string, plan: any) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

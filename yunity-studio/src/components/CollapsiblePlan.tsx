@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, ChevronUp, Dumbbell, Wand2, BedDouble, CalendarCheck, Pencil, Loader2, Check, X, Plus } from 'lucide-react'
+import { ChevronDown, ChevronUp, Wand2, BedDouble, CalendarCheck, Pencil, Loader2, Check, X, Plus, Edit2, Save } from 'lucide-react'
 import WorkoutGenerator from '@/components/WorkoutGenerator'
-import { refineDayPlan, removeDayFromPlan, addDayToPlan } from '@/app/dashboard/ai-actions'
+import { refineDayPlan, removeDayFromPlan, addDayToPlan, updateWorkoutDay } from '@/app/dashboard/ai-actions'
 import { toast } from 'sonner'
 
 interface CollapsiblePlanProps {
@@ -22,6 +22,13 @@ const Textarea = ({ ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement
   />
 )
 
+const SmallInput = ({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    {...props}
+    className={`rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent ${props.className ?? ''}`}
+  />
+)
+
 export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName, workoutId }: CollapsiblePlanProps) {
   const router = useRouter()
   const [expanded, setExpanded] = useState(false)
@@ -29,12 +36,18 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
   const [localDays, setLocalDays] = useState<any[]>(initialPlan?.days ?? [])
   const [activeDayIdx, setActiveDayIdx] = useState<number | null>(null)
 
-  // Per-day state
+  // Per-day AI customize state
   const [customizeOpenIdx, setCustomizeOpenIdx] = useState<number | null>(null)
   const [customizeTexts, setCustomizeTexts] = useState<Record<number, string>>({})
   const [refiningIdx, setRefiningIdx] = useState<number | null>(null)
   const [confirmRemoveIdx, setConfirmRemoveIdx] = useState<number | null>(null)
   const [removingIdx, setRemovingIdx] = useState<number | null>(null)
+
+  // Manual exercise edit state
+  const [editModeIdx, setEditModeIdx] = useState<number | null>(null)
+  const [editExercises, setEditExercises] = useState<any[]>([])
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [newEx, setNewEx] = useState({ name: '', sets: '3', reps: '10', rest: '60s' })
 
   // Add day panel
   const [showAddDay, setShowAddDay] = useState(false)
@@ -43,10 +56,10 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
 
   const hasplan = !!initialPlan
 
-  // Sync localDays when a new plan is saved and props update
+  // Sync localDays only when a new plan is saved (workoutId changes), not on day-level edits
   useEffect(() => {
     setLocalDays(initialPlan?.days ?? [])
-  }, [initialPlan])
+  }, [workoutId])
 
   useEffect(() => {
     if (!workoutId) return
@@ -99,12 +112,10 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
       await removeDayFromPlan(workoutId, idx)
       setLocalDays(prev => prev.filter((_, i) => i !== idx))
       setConfirmRemoveIdx(null)
-      // Clear active day if it was the removed one
       if (activeDayIdx === idx) {
         setActiveDayIdx(null)
         document.cookie = `yunity_active_day=; path=/; max-age=0`
       } else if (activeDayIdx !== null && activeDayIdx > idx) {
-        // Shift active index down
         const newIdx = activeDayIdx - 1
         setActiveDayIdx(newIdx)
         document.cookie = `yunity_active_day=${workoutId}:${newIdx}; path=/; max-age=${60 * 60 * 24 * 30}`
@@ -133,6 +144,53 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
       toast.error('Failed to add day.')
     } finally {
       setAddingDay(false)
+    }
+  }
+
+  // Manual edit mode
+  function openEditMode(idx: number) {
+    setEditModeIdx(idx)
+    setEditExercises(localDays[idx]?.exercises?.map((ex: any) => ({ ...ex })) ?? [])
+    setNewEx({ name: '', sets: '3', reps: '10', rest: '60s' })
+    setCustomizeOpenIdx(null) // close AI panel if open
+  }
+
+  function cancelEditMode() {
+    setEditModeIdx(null)
+    setEditExercises([])
+    setNewEx({ name: '', sets: '3', reps: '10', rest: '60s' })
+  }
+
+  function addNewExercise() {
+    if (!newEx.name.trim()) return
+    setEditExercises(prev => [...prev, {
+      name: newEx.name.trim(),
+      sets: parseInt(newEx.sets) || 3,
+      reps: newEx.reps || '10',
+      rest: newEx.rest || '60s',
+      tip: '',
+    }])
+    setNewEx({ name: '', sets: '3', reps: '10', rest: '60s' })
+  }
+
+  function removeEditExercise(exIdx: number) {
+    setEditExercises(prev => prev.filter((_, i) => i !== exIdx))
+  }
+
+  async function handleSaveManualEdit(idx: number) {
+    if (!workoutId) return
+    setSavingEdit(true)
+    try {
+      const updatedDay = await updateWorkoutDay(workoutId, idx, editExercises)
+      if (updatedDay) {
+        setLocalDays(prev => prev.map((d, i) => i === idx ? updatedDay : d))
+        cancelEditMode()
+        toast.success('Exercises saved!')
+      }
+    } catch {
+      toast.error('Failed to save changes.')
+    } finally {
+      setSavingEdit(false)
     }
   }
 
@@ -177,12 +235,11 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
                   const isRest = !day.exercises || day.exercises.length === 0
                   const isActive = activeDayIdx === idx
                   const exercises: any[] = day.exercises ?? []
-                  const preview = exercises.slice(0, 4)
-                  const overflow = exercises.length - preview.length
                   const isCustomizeOpen = customizeOpenIdx === idx
                   const isRefining = refiningIdx === idx
                   const isConfirmingRemove = confirmRemoveIdx === idx
                   const isRemoving = removingIdx === idx
+                  const isInEditMode = editModeIdx === idx
 
                   return (
                     <div
@@ -231,7 +288,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
                           )}
                           {isActive && <Check size={15} className="text-emerald-500" />}
 
-                          {/* Remove button */}
+                          {/* Remove day button */}
                           {!isConfirmingRemove ? (
                             <button
                               onClick={() => setConfirmRemoveIdx(idx)}
@@ -261,61 +318,168 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
                         </div>
                       </div>
 
-                      {/* Exercise list */}
+                      {/* Exercise section */}
                       {!isRest && (
                         <div className="px-4 py-2.5 space-y-1.5">
-                          {preview.map((ex: any, i: number) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-slate-600">
-                              <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />
-                              <span className="truncate">{ex.name}</span>
-                              <span className="text-slate-400 shrink-0">{ex.sets}×{ex.reps}</span>
+
+                          {/* ── Manual edit mode ── */}
+                          {isInEditMode ? (
+                            <div className="space-y-2 animate-in fade-in duration-150">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Editing exercises</p>
+
+                              {/* Existing exercises */}
+                              {editExercises.map((ex: any, exIdx: number) => (
+                                <div key={exIdx} className="flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-slate-800 truncate">{ex.name}</p>
+                                    <p className="text-[11px] text-slate-400">{ex.sets} sets × {ex.reps} · {ex.rest}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => removeEditExercise(exIdx)}
+                                    className="text-slate-300 hover:text-red-400 transition-colors shrink-0"
+                                    title="Remove exercise"
+                                  >
+                                    <X size={13} />
+                                  </button>
+                                </div>
+                              ))}
+
+                              {editExercises.length === 0 && (
+                                <p className="text-xs text-slate-400 text-center py-2">No exercises — add one below</p>
+                              )}
+
+                              {/* Add exercise form */}
+                              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-3 space-y-2">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Add exercise</p>
+                                <SmallInput
+                                  placeholder="Exercise name"
+                                  value={newEx.name}
+                                  onChange={e => setNewEx(prev => ({ ...prev, name: e.target.value }))}
+                                  onKeyDown={e => { if (e.key === 'Enter') addNewExercise() }}
+                                  className="w-full"
+                                />
+                                <div className="flex gap-2">
+                                  <SmallInput
+                                    placeholder="Sets"
+                                    value={newEx.sets}
+                                    onChange={e => setNewEx(prev => ({ ...prev, sets: e.target.value }))}
+                                    className="w-16"
+                                  />
+                                  <SmallInput
+                                    placeholder="Reps"
+                                    value={newEx.reps}
+                                    onChange={e => setNewEx(prev => ({ ...prev, reps: e.target.value }))}
+                                    className="w-20"
+                                  />
+                                  <SmallInput
+                                    placeholder="Rest"
+                                    value={newEx.rest}
+                                    onChange={e => setNewEx(prev => ({ ...prev, rest: e.target.value }))}
+                                    className="w-20"
+                                  />
+                                  <button
+                                    onClick={addNewExercise}
+                                    disabled={!newEx.name.trim()}
+                                    className="flex items-center gap-1 text-xs font-bold bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-white rounded-md px-2.5 py-1.5 transition-colors shrink-0"
+                                  >
+                                    <Plus size={12} /> Add
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Save / Cancel */}
+                              <div className="flex gap-2 pt-1">
+                                <button
+                                  onClick={() => handleSaveManualEdit(idx)}
+                                  disabled={savingEdit}
+                                  className="flex items-center gap-1.5 text-xs font-bold bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-lg px-3 py-1.5 transition-colors"
+                                >
+                                  {savingEdit ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                                  {savingEdit ? 'Saving...' : 'Save changes'}
+                                </button>
+                                <button
+                                  onClick={cancelEditMode}
+                                  className="text-xs font-semibold text-slate-400 hover:text-slate-700 transition-colors px-2"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
                             </div>
-                          ))}
-                          {overflow > 0 && (
-                            <p className="text-xs text-slate-400 pl-3">+{overflow} more</p>
-                          )}
+                          ) : (
+                            /* ── Normal view ── */
+                            <>
+                              {exercises.slice(0, 4).map((ex: any, i: number) => (
+                                <div key={i} className="flex items-center gap-2 text-xs text-slate-600">
+                                  <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />
+                                  <span className="truncate">{ex.name}</span>
+                                  <span className="text-slate-400 shrink-0">{ex.sets}×{ex.reps}</span>
+                                </div>
+                              ))}
+                              {exercises.length > 4 && (
+                                <p className="text-xs text-slate-400 pl-3">+{exercises.length - 4} more</p>
+                              )}
 
-                          <button
-                            onClick={() => startDay(idx)}
-                            className={`mt-2 w-full rounded-lg py-2 text-xs font-bold transition-colors ${
-                              isActive
-                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            }`}
-                          >
-                            {isActive ? "Start Today's Workout" : 'Start This Workout'}
-                          </button>
-
-                          {/* Customize toggle */}
-                          <button
-                            onClick={() => setCustomizeOpenIdx(isCustomizeOpen ? null : idx)}
-                            className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-violet-600 transition-colors mt-1"
-                          >
-                            <Pencil size={11} />
-                            {isCustomizeOpen ? 'Cancel' : 'Customize this day'}
-                          </button>
-
-                          {isCustomizeOpen && (
-                            <div className="mt-2 space-y-2 animate-in fade-in duration-150">
-                              <Textarea
-                                rows={2}
-                                placeholder="e.g. Remove leg press, add walking lunges. No machines."
-                                value={customizeTexts[idx] ?? ''}
-                                onChange={e => setCustomizeTexts(prev => ({ ...prev, [idx]: e.target.value }))}
-                                disabled={isRefining}
-                                className="text-xs"
-                              />
                               <button
-                                onClick={() => handleRefineDay(idx)}
-                                disabled={isRefining || !customizeTexts[idx]?.trim()}
-                                className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-lg px-3 py-1.5 transition-colors"
+                                onClick={() => startDay(idx)}
+                                className={`mt-2 w-full rounded-lg py-2 text-xs font-bold transition-colors ${
+                                  isActive
+                                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                }`}
                               >
-                                {isRefining
-                                  ? <><Loader2 size={12} className="animate-spin" /> Updating...</>
-                                  : <><Wand2 size={12} /> Update Day</>
-                                }
+                                {isActive ? "Start Today's Workout" : 'Start This Workout'}
                               </button>
-                            </div>
+
+                              {/* Action buttons row */}
+                              <div className="flex items-center gap-3 mt-1">
+                                {/* AI Customize */}
+                                <button
+                                  onClick={() => {
+                                    setCustomizeOpenIdx(isCustomizeOpen ? null : idx)
+                                    cancelEditMode()
+                                  }}
+                                  className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-violet-600 transition-colors"
+                                >
+                                  <Pencil size={11} />
+                                  {isCustomizeOpen ? 'Cancel AI edit' : 'AI customize'}
+                                </button>
+
+                                <span className="text-slate-200 text-xs">·</span>
+
+                                {/* Manual edit */}
+                                <button
+                                  onClick={() => openEditMode(idx)}
+                                  className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-slate-700 transition-colors"
+                                >
+                                  <Edit2 size={11} />
+                                  Edit exercises
+                                </button>
+                              </div>
+
+                              {/* AI Customize panel */}
+                              {isCustomizeOpen && (
+                                <div className="mt-2 space-y-2 animate-in fade-in duration-150">
+                                  <Textarea
+                                    rows={2}
+                                    placeholder="e.g. Remove leg press, add walking lunges. No machines."
+                                    value={customizeTexts[idx] ?? ''}
+                                    onChange={e => setCustomizeTexts(prev => ({ ...prev, [idx]: e.target.value }))}
+                                    disabled={isRefining}
+                                    className="text-xs"
+                                  />
+                                  <button
+                                    onClick={() => handleRefineDay(idx)}
+                                    disabled={isRefining || !customizeTexts[idx]?.trim()}
+                                    className="flex items-center gap-1.5 text-xs font-bold bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white rounded-lg px-3 py-1.5 transition-colors"
+                                  >
+                                    {isRefining
+                                      ? <><Loader2 size={12} className="animate-spin" /> Updating...</>
+                                      : <><Wand2 size={12} /> Update Day</>
+                                    }
+                                  </button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
