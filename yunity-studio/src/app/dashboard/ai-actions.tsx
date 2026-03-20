@@ -228,6 +228,7 @@ Apply their request (swap/remove/add exercises as asked) and return ONLY a JSON 
     .eq('user_id', user.id)
 
   revalidatePath('/dashboard/fitness')
+  revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
   return updatedDay
 }
 
@@ -247,6 +248,7 @@ export async function removeDayFromPlan(workoutId: string, dayIndex: number) {
     .eq('id', workoutId).eq('user_id', user.id)
 
   revalidatePath('/dashboard/fitness')
+  revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
 }
 
 export async function addDayToPlan(workoutId: string, focus: string) {
@@ -285,6 +287,7 @@ Return ONLY a JSON object:
     .eq('id', workoutId).eq('user_id', user.id)
 
   revalidatePath('/dashboard/fitness')
+  revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
   return newDay
 }
 
@@ -311,6 +314,7 @@ export async function updateWorkoutDay(workoutId: string, dayIndex: number, exer
     .eq('user_id', user.id)
 
   revalidatePath('/dashboard/fitness')
+  revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
   return updatedDays[dayIndex]
 }
 
