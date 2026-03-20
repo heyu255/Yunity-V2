@@ -221,11 +221,13 @@ Apply their request (swap/remove/add exercises as asked) and return ONLY a JSON 
   const updatedDays = [...workout.plan.days]
   updatedDays[dayIndex] = updatedDay
 
-  await supabase
+  const { error: refineUpdateError } = await supabase
     .from('workouts')
     .update({ plan: { ...workout.plan, days: updatedDays } })
     .eq('id', workoutId)
     .eq('user_id', user.id)
+
+  if (refineUpdateError) throw new Error(refineUpdateError.message)
 
   revalidatePath('/dashboard/fitness')
   revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
@@ -307,15 +309,19 @@ export async function updateWorkoutDay(workoutId: string, dayIndex: number, exer
   const updatedDays = [...workout.plan.days]
   updatedDays[dayIndex] = { ...updatedDays[dayIndex], exercises }
 
-  const { error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from('workouts')
     .update({ plan: { ...workout.plan, days: updatedDays } })
     .eq('id', workoutId)
     .eq('user_id', user.id)
+    .select('id')
 
   if (updateError) {
-    console.error('updateWorkoutDay failed:', updateError.message)
+    console.error('updateWorkoutDay error:', updateError.message)
     throw new Error(updateError.message)
+  }
+  if (!updatedRows || updatedRows.length === 0) {
+    throw new Error('No rows updated — check Supabase RLS UPDATE policy for workouts table')
   }
 
   revalidatePath('/dashboard/fitness')
