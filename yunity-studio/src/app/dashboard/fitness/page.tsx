@@ -99,9 +99,12 @@ export default async function FitnessPage() {
                 </span>
               )}
               {profile?.goal && (
-                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                <Link
+                  href="/dashboard/account"
+                  className="rounded-full bg-white/10 hover:bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 hover:text-slate-200 transition-colors"
+                >
                   {goalLabel[profile.goal] ?? profile.goal}
-                </span>
+                </Link>
               )}
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">{t('title')}</h1>

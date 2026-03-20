@@ -1,12 +1,12 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { logout } from '@/app/login/actions'
-import { updateProfile } from './actions'
+import { updateProfile, updateNutritionGoals } from './actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LogOut, User, Ruler, Weight, Target, Activity, TrendingUp } from 'lucide-react'
+import { LogOut, User, Ruler, Weight, Target, Activity, TrendingUp, Utensils } from 'lucide-react'
 import SubmitButton from '@/components/SubmitButton'
 import { createCustomerPortalSession } from '@/app/actions/stripe-portal'
 import WeightTrendChart from './weight-trend-chart'
@@ -130,6 +130,76 @@ export default async function AccountPage() {
           </CardContent>
         </Card>
       </form>
+      {/* ── Nutrition Goals ──────────────────────────────── */}
+      <form action={updateNutritionGoals}>
+        <Card className="shadow-md border-slate-200">
+          <CardHeader className="bg-slate-50/50 border-b">
+            <CardTitle className="flex items-center gap-2 text-slate-800">
+              <Utensils size={20} /> Nutrition Goals
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 pt-6">
+            <p className="text-xs text-slate-400">
+              These are auto-calculated from your measurements. Override them here if you prefer custom targets.
+            </p>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-slate-600">
+                <Target size={16} className="text-slate-500" /> Daily Calorie Target (kcal)
+              </Label>
+              <Input
+                name="daily_calories_target"
+                type="number"
+                min="500"
+                step="50"
+                defaultValue={profile?.daily_calories_target ?? 2000}
+                className="focus:ring-slate-400"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Macro Targets (grams/day)</p>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-blue-600 text-sm font-semibold">Protein (g)</Label>
+                  <Input
+                    name="protein_target"
+                    type="number"
+                    min="0"
+                    step="1"
+                    defaultValue={profile?.protein_target ?? Math.round((profile?.daily_calories_target ?? 2000) * 0.30 / 4)}
+                    className="focus:ring-blue-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-amber-600 text-sm font-semibold">Carbs (g)</Label>
+                  <Input
+                    name="carbs_target"
+                    type="number"
+                    min="0"
+                    step="1"
+                    defaultValue={profile?.carbs_target ?? Math.round((profile?.daily_calories_target ?? 2000) * 0.45 / 4)}
+                    className="focus:ring-amber-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-rose-600 text-sm font-semibold">Fats (g)</Label>
+                  <Input
+                    name="fats_target"
+                    type="number"
+                    min="0"
+                    step="1"
+                    defaultValue={profile?.fats_target ?? Math.round((profile?.daily_calories_target ?? 2000) * 0.25 / 9)}
+                    className="focus:ring-rose-400"
+                  />
+                </div>
+              </div>
+            </div>
+            <SubmitButton className="h-10 w-full bg-slate-900 font-semibold text-white hover:bg-slate-800 active:scale-[0.98]">
+              Save Nutrition Goals
+            </SubmitButton>
+          </CardContent>
+        </Card>
+      </form>
+
       {profile?.is_premium && (
   <Card className="shadow-md border-slate-200 overflow-hidden">
     <CardHeader className="bg-slate-50/50 border-b">

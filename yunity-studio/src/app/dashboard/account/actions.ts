@@ -3,6 +3,31 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+export async function updateNutritionGoals(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const dailyCalories = Math.max(500, Number(formData.get('daily_calories_target')) || 2000)
+  const proteinTarget = Math.max(0, Number(formData.get('protein_target')) || 0)
+  const carbsTarget = Math.max(0, Number(formData.get('carbs_target')) || 0)
+  const fatsTarget = Math.max(0, Number(formData.get('fats_target')) || 0)
+
+  await supabase
+    .from('profiles')
+    .update({
+      daily_calories_target: dailyCalories,
+      protein_target: proteinTarget || null,
+      carbs_target: carbsTarget || null,
+      fats_target: fatsTarget || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', user.id)
+
+  revalidatePath('/dashboard/account')
+  revalidatePath('/dashboard/nutrition')
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient()
 

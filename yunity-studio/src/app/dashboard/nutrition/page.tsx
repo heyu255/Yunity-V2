@@ -14,7 +14,7 @@ export default async function NutritionPage() {
   const today = new Date().toISOString().split('T')[0]
 
   const [profileRes, logRes, burnedRes] = await Promise.all([
-    supabase.from('profiles').select('daily_calories_target, goal').eq('id', user.id).single(),
+    supabase.from('profiles').select('daily_calories_target, goal, protein_target, carbs_target, fats_target').eq('id', user.id).single(),
     getTodayMealLog(),
     supabase.from('workout_logs').select('calories_burned').eq('user_id', user.id).gte('created_at', today),
   ])
@@ -31,6 +31,9 @@ export default async function NutritionPage() {
         initialMeals={logRes?.meals ?? []}
         calorieTarget={profileRes.data.daily_calories_target ?? 2000}
         caloriesBurned={caloriesBurned}
+        proteinTarget={profileRes.data.protein_target ?? undefined}
+        carbsTarget={profileRes.data.carbs_target ?? undefined}
+        fatsTarget={profileRes.data.fats_target ?? undefined}
       />
     </div>
   )

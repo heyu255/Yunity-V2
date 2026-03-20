@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   Sparkles, Plus, Pencil, Trash2, Check, X,
-  Loader2, ChevronDown, ChevronUp, Utensils, Flame
+  Loader2, ChevronDown, ChevronUp, Utensils, Flame, Settings2
 } from 'lucide-react'
 import { saveMealLog, generateMealIdea, estimateNutrition, type MealEntry, type MealIdea } from './nutrition-actions'
 import { toast } from 'sonner'
@@ -42,11 +43,17 @@ export default function NutritionClient({
   initialMeals,
   calorieTarget,
   caloriesBurned = 0,
+  proteinTarget: proteinTargetProp,
+  carbsTarget: carbsTargetProp,
+  fatsTarget: fatsTargetProp,
 }: {
   logId: string
   initialMeals: MealEntry[]
   calorieTarget: number
   caloriesBurned?: number
+  proteinTarget?: number
+  carbsTarget?: number
+  fatsTarget?: number
 }) {
   const [meals, setMeals] = useState<MealEntry[]>(initialMeals)
   const [saving, setSaving] = useState(false)
@@ -73,10 +80,10 @@ export default function NutritionClient({
   const totalCarbs = meals.reduce((s, m) => s + (m.carbs || 0), 0)
   const totalFats = meals.reduce((s, m) => s + (m.fats || 0), 0)
 
-  // Macro targets derived from calorie target (30% protein, 45% carbs, 25% fat)
-  const proteinTarget = Math.round(calorieTarget * 0.30 / 4)
-  const carbsTarget = Math.round(calorieTarget * 0.45 / 4)
-  const fatsTarget = Math.round(calorieTarget * 0.25 / 9)
+  // Use user-set targets if available, otherwise derive from calorie target
+  const proteinTarget = proteinTargetProp ?? Math.round(calorieTarget * 0.30 / 4)
+  const carbsTarget = carbsTargetProp ?? Math.round(calorieTarget * 0.45 / 4)
+  const fatsTarget = fatsTargetProp ?? Math.round(calorieTarget * 0.25 / 9)
 
   async function persist(updated: MealEntry[]) {
     setMeals(updated)
@@ -181,7 +188,15 @@ export default function NutritionClient({
         <div className="relative z-10 space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Today's Nutrition</h1>
-            {saving && <Loader2 size={14} className="text-slate-500 animate-spin" />}
+            <div className="flex items-center gap-2">
+              {saving && <Loader2 size={14} className="text-slate-500 animate-spin" />}
+              <Link
+                href="/dashboard/account"
+                className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-white transition-colors rounded-full bg-white/5 hover:bg-white/10 px-2.5 py-1"
+              >
+                <Settings2 size={11} /> Edit goals
+              </Link>
+            </div>
           </div>
           <CalorieBar eaten={totalCalories} target={calorieTarget} />
 

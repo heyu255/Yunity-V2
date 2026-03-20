@@ -147,7 +147,7 @@ export function WorkoutLogger({
     setAllExercises(prev => [...prev, custom])
     setLogs(prev => [...prev, {
       name,
-      sets: Array.from({ length: numSets }, () => ({ reps: '', weight, completed: false })),
+      sets: Array.from({ length: numSets }, () => ({ reps: '', weight, completed: false, duration: '', distance: '' })),
     }])
     setShowAddForm(false)
     toast.success(`${name} added`)
