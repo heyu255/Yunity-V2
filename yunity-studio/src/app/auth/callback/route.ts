@@ -22,22 +22,9 @@ export async function GET(request: NextRequest) {
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
-      console.error('Auth callback code exchange error:', {
-        message: exchangeError.message,
-        status: exchangeError.status,
-        code: exchangeError.code
-      })
-      
-      // Check if it's a PKCE error
-      if (exchangeError.message?.includes('PKCE') || exchangeError.message?.includes('code verifier')) {
-        const errorUrl = new URL('/login', requestUrl.origin)
-        errorUrl.searchParams.set('error', 'Password reset link format not supported. Your Supabase project is configured to use PKCE codes, but password reset requires hash fragments. Please contact support to update your Supabase configuration.')
-        return NextResponse.redirect(errorUrl)
-      }
-      
-      // Other errors
+      console.error('Auth callback code exchange error:', exchangeError.message)
       const errorUrl = new URL('/login', requestUrl.origin)
-      errorUrl.searchParams.set('error', exchangeError.message || 'Failed to verify reset link. Please request a new password reset.')
+      errorUrl.searchParams.set('error', 'Link expired or already used. Please request a new password reset.')
       return NextResponse.redirect(errorUrl)
     }
 

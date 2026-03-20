@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { login, signUp, forgotPassword } from './actions'
+import { login, signUp } from './actions'
+import { createBrowserClient } from '@supabase/ssr'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
@@ -70,6 +70,7 @@ export function LoginForm({
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [localError, setLocalError] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const error = localError || serverError
@@ -77,6 +78,7 @@ export function LoginForm({
   function switchTab(t: 'signin' | 'signup') {
     setTab(t)
     setLocalError('')
+    setForgotSent(false)
     setPassword('')
     setConfirm('')
   }
@@ -112,9 +114,24 @@ export function LoginForm({
       setLocalError('Enter your email address first, then click Forgot password.')
       return
     }
-    const formData = new FormData()
-    formData.set('email', email)
-    startTransition(() => forgotPassword(formData))
+    startTransition(async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const baseUrl = window.location.origin
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${baseUrl}/auth/callback?next=/reset-password`,
+      })
+      if (error) {
+        setLocalError(error.message)
+      } else {
+        // Show success inline without redirect
+        setLocalError('')
+        // Reuse serverMessage slot via a synthetic success — we'll use a local state instead
+        setForgotSent(true)
+      }
+    })
   }
 
   return (
@@ -163,9 +180,9 @@ export function LoginForm({
           {error}
         </div>
       )}
-      {!error && serverMessage && (
+      {!error && (serverMessage || forgotSent) && (
         <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
-          {serverMessage}
+          {forgotSent ? 'Password reset link sent. Check your inbox and spam folder.' : serverMessage}
         </div>
       )}
 
