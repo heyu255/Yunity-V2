@@ -9,6 +9,8 @@ export type SetLog = {
   reps: number | null
   weight: number | null
   completed: boolean
+  duration_min?: number | null
+  distance?: number | null
 }
 
 export type ExerciseLog = {
@@ -27,24 +29,33 @@ export type ExerciseLog = {
  */
 function estimateCaloriesBurned(exerciseLogs: ExerciseLog[], weightKg: number): number {
   const COMPOUND_PATTERN = /squat|deadlift|bench|row|pull.?up|chin.?up|overhead press|ohp|lunge|hip thrust|leg press|dip|clean|snatch|press/i
+  const CARDIO_PATTERN = /jog|run|walk|cycl|bik|swim|jump rope|skip|elliptical|stair|treadmill|cardio|hiit|sprint/i
 
-  let totalMinutes = 0
+  let totalCalories = 0
 
   for (const ex of exerciseLogs) {
-    const completedSets = ex.sets.filter(s => s.completed).length
-    if (completedSets === 0) continue
+    const completedSets = ex.sets.filter(s => s.completed)
+    if (completedSets.length === 0) continue
 
-    // Compound: ~45s work + ~2min rest = ~2.75 min/set, MET ~6
-    // Isolation: ~30s work + ~75s rest = ~2 min/set, MET ~4
-    const isCompound = COMPOUND_PATTERN.test(ex.name)
-    totalMinutes += completedSets * (isCompound ? 2.75 : 2.0)
+    const name = ex.name.toLowerCase()
+
+    if (CARDIO_PATTERN.test(name)) {
+      // Use actual logged duration; fall back to 20 min if not entered
+      const totalDurationMin = completedSets.reduce((sum, s) => sum + (s.duration_min ?? 20), 0)
+      let cardioMET = 7.5
+      if (/walk/.test(name)) cardioMET = 3.5
+      else if (/cycl|bik/.test(name)) cardioMET = 6.0
+      else if (/swim/.test(name)) cardioMET = 6.0
+      else if (/hiit|sprint/.test(name)) cardioMET = 9.0
+      totalCalories += Math.round(cardioMET * weightKg * (totalDurationMin / 60))
+    } else {
+      const isCompound = COMPOUND_PATTERN.test(name)
+      const totalMinutes = completedSets.length * (isCompound ? 2.75 : 2.0)
+      totalCalories += Math.round(5.0 * weightKg * (totalMinutes / 60))
+    }
   }
 
-  if (totalMinutes === 0) return 0
-
-  // Weighted average MET for a mixed resistance session ≈ 5.0
-  const met = 5.0
-  return Math.round(met * weightKg * (totalMinutes / 60))
+  return totalCalories
 }
 
 export async function logWorkout(

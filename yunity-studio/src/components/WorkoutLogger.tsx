@@ -23,13 +23,18 @@ type Exercise = {
   isCustom?: boolean
 }
 
-type SetState = { reps: string; weight: string; completed: boolean }
+type SetState = { reps: string; weight: string; completed: boolean; duration: string; distance: string }
 type ExerciseState = { name: string; sets: SetState[] }
+
+const CARDIO_PATTERN = /\b(jog|jogging|run|running|walk|walking|cycl|bik(e|ing)|swim|swimming|rowing machine|jump rope|skipping|elliptical|stair|treadmill|cardio|hiit|sprint(ing)?)\b/i
+function isCardio(name: string): boolean {
+  return CARDIO_PATTERN.test(name)
+}
 
 function initLogs(exercises: Exercise[]): ExerciseState[] {
   return exercises.map(ex => ({
     name: ex.name,
-    sets: Array.from({ length: ex.sets }, () => ({ reps: '', weight: '', completed: false })),
+    sets: Array.from({ length: ex.sets }, () => ({ reps: '', weight: '', completed: false, duration: '', distance: '' })),
   }))
 }
 
@@ -113,22 +118,25 @@ export function WorkoutLogger({
     )
 
     if (field === 'completed' && value === true) {
-      const currentSet = logs[exIdx].sets[setIdx]
-      const weight = parseFloat(currentSet.weight)
-      const reps = parseInt(currentSet.reps)
-
-      if (weight > 0 && reps > 0) {
-        const oneRM = calcOneRM(weight, reps)
-        const exKey = logs[exIdx].name.toLowerCase().trim()
-        const prevBest = previousBests[exKey]
-        if (!prevBest || oneRM > prevBest.oneRM) {
-          setNewPRs(prev => new Set([...prev, exKey]))
-        }
-      }
-
       const exName = allExercises[exIdx]?.name ?? logs[exIdx].name
-      const restSecs = parseRestSeconds(allExercises[exIdx]?.rest ?? '', exName)
-      setTimer({ seconds: restSecs, exerciseName: exName })
+
+      if (!isCardio(exName)) {
+        const currentSet = logs[exIdx].sets[setIdx]
+        const weight = parseFloat(currentSet.weight)
+        const reps = parseInt(currentSet.reps)
+
+        if (weight > 0 && reps > 0) {
+          const oneRM = calcOneRM(weight, reps)
+          const exKey = logs[exIdx].name.toLowerCase().trim()
+          const prevBest = previousBests[exKey]
+          if (!prevBest || oneRM > prevBest.oneRM) {
+            setNewPRs(prev => new Set([...prev, exKey]))
+          }
+        }
+
+        const restSecs = parseRestSeconds(allExercises[exIdx]?.rest ?? '', exName)
+        setTimer({ seconds: restSecs, exerciseName: exName })
+      }
     }
   }
 
@@ -155,12 +163,22 @@ export function WorkoutLogger({
     try {
       const payload: ExerciseLog[] = logs.map(ex => ({
         name: ex.name,
-        sets: ex.sets.map((s, i) => ({
-          set_number: i + 1,
-          reps: s.reps ? parseInt(s.reps) : null,
-          weight: s.weight ? parseFloat(s.weight) : null,
-          completed: s.completed,
-        })),
+        sets: ex.sets.map((s, i) => isCardio(ex.name)
+          ? {
+              set_number: i + 1,
+              reps: null,
+              weight: null,
+              completed: s.completed,
+              duration_min: s.duration ? parseFloat(s.duration) : null,
+              distance: s.distance ? parseFloat(s.distance) : null,
+            }
+          : {
+              set_number: i + 1,
+              reps: s.reps ? parseInt(s.reps) : null,
+              weight: s.weight ? parseFloat(s.weight) : null,
+              completed: s.completed,
+            }
+        ),
       }))
       await logWorkout(workoutId, dayIndex, dayName, payload, unit)
       router.push('/dashboard/fitness')
@@ -233,6 +251,7 @@ export function WorkoutLogger({
         const prevBest = previousBests[exKey]
         const isNewPR = newPRs.has(exKey)
         const isCustom = exercise?.isCustom
+        const cardio = isCardio(ex.name)
 
         return (
           <Card key={exIdx} className={`overflow-hidden shadow-sm ${isCustom ? 'border-violet-200' : 'border-slate-200'}`}>
@@ -286,63 +305,100 @@ export function WorkoutLogger({
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-slate-100">
-                <div className="grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  <span>Set</span>
-                  <span>Weight ({unit})</span>
-                  <span>Reps</span>
-                  <span />
-                </div>
-                {ex.sets.map((set, setIdx) => {
-                  const w = parseFloat(set.weight)
-                  const r = parseInt(set.reps)
-                  const oneRM = set.completed && w > 0 && r > 0 ? calcOneRM(w, r) : null
-
-                  return (
-                    <div key={setIdx}>
-                      <div
-                        className={`grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 items-center transition-colors ${
-                          set.completed ? 'bg-green-50' : ''
+              {cardio ? (
+                <div className="divide-y divide-slate-100">
+                  <div className="grid grid-cols-[1fr_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span>Duration (min)</span>
+                    <span>Distance (km)</span>
+                    <span />
+                  </div>
+                  {ex.sets.map((set, setIdx) => (
+                    <div
+                      key={setIdx}
+                      className={`grid grid-cols-[1fr_1fr_3rem] gap-3 px-4 py-2.5 items-center transition-colors ${set.completed ? 'bg-green-50' : ''}`}
+                    >
+                      <Input
+                        type="number" min="0" step="1" placeholder="e.g. 20"
+                        value={set.duration}
+                        onChange={e => updateSet(exIdx, setIdx, 'duration', e.target.value)}
+                        className="h-11 text-sm"
+                      />
+                      <Input
+                        type="number" min="0" step="0.1" placeholder="optional"
+                        value={set.distance}
+                        onChange={e => updateSet(exIdx, setIdx, 'distance', e.target.value)}
+                        className="h-11 text-sm"
+                      />
+                      <button
+                        onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
+                        className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
+                          set.completed ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 hover:border-slate-500'
                         }`}
                       >
-                        <span className="text-sm font-bold text-slate-500">{setIdx + 1}</span>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          placeholder="—"
-                          value={set.weight}
-                          onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
-                          className="h-11 text-sm"
-                        />
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="—"
-                          value={set.reps}
-                          onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
-                          className="h-11 text-sm"
-                        />
-                        <button
-                          onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
-                          className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
-                            set.completed
-                              ? 'bg-green-500 border-green-500 text-white'
-                              : 'border-slate-300 hover:border-slate-500'
+                        {set.completed && <Check size={14} strokeWidth={3} />}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  <div className="grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span>Set</span>
+                    <span>Weight ({unit})</span>
+                    <span>Reps</span>
+                    <span />
+                  </div>
+                  {ex.sets.map((set, setIdx) => {
+                    const w = parseFloat(set.weight)
+                    const r = parseInt(set.reps)
+                    const oneRM = set.completed && w > 0 && r > 0 ? calcOneRM(w, r) : null
+
+                    return (
+                      <div key={setIdx}>
+                        <div
+                          className={`grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 items-center transition-colors ${
+                            set.completed ? 'bg-green-50' : ''
                           }`}
                         >
-                          {set.completed && <Check size={14} strokeWidth={3} />}
-                        </button>
-                      </div>
-                      {oneRM !== null && (
-                        <div className="px-4 pb-2 flex items-center gap-2 text-xs bg-green-50 text-slate-400">
-                          Est. 1RM: <span className="font-semibold text-slate-600">{oneRM} {unit}</span>
+                          <span className="text-sm font-bold text-slate-500">{setIdx + 1}</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            placeholder="—"
+                            value={set.weight}
+                            onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
+                            className="h-11 text-sm"
+                          />
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="—"
+                            value={set.reps}
+                            onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
+                            className="h-11 text-sm"
+                          />
+                          <button
+                            onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
+                            className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
+                              set.completed
+                                ? 'bg-green-500 border-green-500 text-white'
+                                : 'border-slate-300 hover:border-slate-500'
+                            }`}
+                          >
+                            {set.completed && <Check size={14} strokeWidth={3} />}
+                          </button>
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                        {oneRM !== null && (
+                          <div className="px-4 pb-2 flex items-center gap-2 text-xs bg-green-50 text-slate-400">
+                            Est. 1RM: <span className="font-semibold text-slate-600">{oneRM} {unit}</span>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         )

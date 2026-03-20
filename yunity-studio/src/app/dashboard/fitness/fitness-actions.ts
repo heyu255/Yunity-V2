@@ -99,13 +99,17 @@ export type TodayContext = {
   totalVolumeLastSession: number
 }
 
-export async function getTodayPlanContext(planDays: any[]): Promise<TodayContext | null> {
+export async function getTodayPlanContext(planDays: any[], dayIndexOverride?: number): Promise<TodayContext | null> {
   if (!planDays?.length) return null
 
-  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const todayName = DAY_NAMES[new Date().getDay()]
-
-  const todayDay = planDays.find((d: any) => d.day === todayName)
+  let todayDay: any
+  if (dayIndexOverride !== undefined && dayIndexOverride >= 0 && dayIndexOverride < planDays.length) {
+    todayDay = planDays[dayIndexOverride]
+  } else {
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const todayName = DAY_NAMES[new Date().getDay()]
+    todayDay = planDays.find((d: any) => d.day === todayName)
+  }
   if (!todayDay) return null
 
   if (!todayDay.exercises || todayDay.exercises.length === 0) {

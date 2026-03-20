@@ -176,6 +176,118 @@ Return ONLY a JSON object with this structure:
   return workoutData
 }
 
+export async function refineDayPlan(workoutId: string, dayIndex: number, instructions: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: workout } = await supabase
+    .from('workouts')
+    .select('plan')
+    .eq('id', workoutId)
+    .eq('user_id', user.id)
+    .single()
+  if (!workout?.plan) return null
+
+  const currentDay = workout.plan.days[dayIndex]
+  if (!currentDay) return null
+
+  const prompt = `You are a personal trainer. The user has this workout day:
+
+Day: ${currentDay.day}
+Focus: ${currentDay.focus}
+Exercises:
+${(currentDay.exercises ?? []).map((ex: any) => `- ${ex.name}: ${ex.sets} sets × ${ex.reps}, rest ${ex.rest}. Tip: ${ex.tip ?? ''}`).join('\n')}
+
+The user wants to change this day with these instructions:
+"${instructions}"
+
+Apply their request (swap/remove/add exercises as asked) and return ONLY a JSON object:
+{
+  "day": "${currentDay.day}",
+  "focus": "string",
+  "exercises": [
+    { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
+  ]
+}`
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: prompt }],
+    response_format: { type: 'json_object' },
+  })
+
+  const updatedDay = JSON.parse(response.choices[0].message.content || '{}')
+  const updatedDays = [...workout.plan.days]
+  updatedDays[dayIndex] = updatedDay
+
+  await supabase
+    .from('workouts')
+    .update({ plan: { ...workout.plan, days: updatedDays } })
+    .eq('id', workoutId)
+    .eq('user_id', user.id)
+
+  revalidatePath('/dashboard/fitness')
+  return updatedDay
+}
+
+export async function removeDayFromPlan(workoutId: string, dayIndex: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: workout } = await supabase
+    .from('workouts').select('plan').eq('id', workoutId).eq('user_id', user.id).single()
+  if (!workout?.plan) return
+
+  const updatedDays = workout.plan.days.filter((_: any, i: number) => i !== dayIndex)
+  await supabase
+    .from('workouts')
+    .update({ plan: { ...workout.plan, days: updatedDays } })
+    .eq('id', workoutId).eq('user_id', user.id)
+
+  revalidatePath('/dashboard/fitness')
+}
+
+export async function addDayToPlan(workoutId: string, focus: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: workout } = await supabase
+    .from('workouts').select('plan').eq('id', workoutId).eq('user_id', user.id).single()
+  if (!workout?.plan) return null
+
+  const dayNumber = workout.plan.days.length + 1
+
+  const prompt = `You are a personal trainer. Generate a single workout day with focus: "${focus}".
+Return ONLY a JSON object:
+{
+  "day": "Day ${dayNumber}",
+  "focus": "${focus}",
+  "exercises": [
+    { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
+  ]
+}`
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: prompt }],
+    response_format: { type: 'json_object' },
+  })
+
+  const newDay = JSON.parse(response.choices[0].message.content || '{}')
+  const updatedDays = [...workout.plan.days, newDay]
+
+  await supabase
+    .from('workouts')
+    .update({ plan: { ...workout.plan, days: updatedDays } })
+    .eq('id', workoutId).eq('user_id', user.id)
+
+  revalidatePath('/dashboard/fitness')
+  return newDay
+}
+
 export async function saveWorkoutPlan(name: string, plan: any) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

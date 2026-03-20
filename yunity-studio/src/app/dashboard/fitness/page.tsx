@@ -3,12 +3,13 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CollapsiblePlan } from '@/components/CollapsiblePlan'
 import { CollapsibleArchive } from '@/components/CollapsibleArchive'
-import { Calendar, Zap, BedDouble, TrendingUp, Play } from 'lucide-react'
+import { Calendar, Zap, BedDouble, TrendingUp, Play, Flame } from 'lucide-react'
 
 import { getTodayPlanContext } from './fitness-actions'
 import { ExerciseVideoButton } from '@/components/ExerciseVideoModal'
 import { getTranslations } from 'next-intl/server'
 import { getTrialStatus } from '@/utils/trial'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,10 +19,16 @@ export default async function FitnessPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [profileRes, workoutsRes] = await Promise.all([
+  const today = new Date().toISOString().split('T')[0]
+
+  const [profileRes, workoutsRes, todayLogsRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('workouts').select('id, name, created_at, plan').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
+    supabase.from('workout_logs').select('calories_burned').eq('user_id', user.id).gte('created_at', today),
   ])
+
+  const todayCaloriesBurned = (todayLogsRes.data ?? [])
+    .reduce((sum, log) => sum + (log.calories_burned ?? 0), 0)
 
   const profile = profileRes.data
   const isPremiumDb = profile?.is_premium ?? false
@@ -34,12 +41,26 @@ export default async function FitnessPage() {
   const latestWorkoutName = allWorkouts.length > 0 ? allWorkouts[0].name : null
   const olderWorkouts = allWorkouts.length > 1 ? allWorkouts.slice(1) : []
 
-  const todayContext = latestWorkout?.days ? await getTodayPlanContext(latestWorkout.days) : null
+  // Check if user manually selected a day via the plan picker
+  const cookieStore = await cookies()
+  const activeDayCookie = cookieStore.get('yunity_active_day')?.value
+  let activeDayIndex: number | undefined
+  if (activeDayCookie && latestWorkoutId) {
+    const [cId, cIdx] = activeDayCookie.split(':')
+    if (cId === latestWorkoutId) {
+      const parsed = parseInt(cIdx)
+      if (!isNaN(parsed) && parsed >= 0 && parsed < (latestWorkout?.days?.length ?? 0)) {
+        activeDayIndex = parsed
+      }
+    }
+  }
 
-  // Find today's day index in the plan for the direct start link
+  const todayContext = latestWorkout?.days ? await getTodayPlanContext(latestWorkout.days, activeDayIndex) : null
+
+  // Find today's day index (override with user selection if present)
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const todayName = DAY_NAMES[new Date().getDay()]
-  const todayDayIndex = latestWorkout?.days?.findIndex((d: any) => d.day === todayName) ?? -1
+  const todayDayIndex = activeDayIndex ?? (latestWorkout?.days?.findIndex((d: any) => d.day === todayName) ?? -1)
 
   const canStartToday = todayContext && !todayContext.isRest && todayDayIndex >= 0 && latestWorkoutId
 
@@ -87,6 +108,12 @@ export default async function FitnessPage() {
             <p className="text-slate-400 mt-1 text-sm">
               {isPremium ? t('subtitle_premium') : t('subtitle_free')}
             </p>
+            {todayCaloriesBurned > 0 && (
+              <div className="inline-flex items-center gap-1.5 mt-3 rounded-full bg-orange-500/15 border border-orange-500/25 px-3 py-1">
+                <Flame size={12} className="text-orange-400" />
+                <span className="text-xs font-bold text-orange-300">~{todayCaloriesBurned} kcal burned today</span>
+              </div>
+            )}
           </div>
 
           {/* Right: Today's context card */}
@@ -98,7 +125,9 @@ export default async function FitnessPage() {
                   <>
                     <BedDouble size={13} className="text-slate-400" />
                     <span className="text-xs font-bold text-slate-300">{tCommon('rest_day')}</span>
-                    <span className="text-xs text-slate-500 ml-auto">{todayContext.dayName}</span>
+                    <span className="text-xs text-slate-500 ml-auto">
+                      {activeDayIndex !== undefined ? `Day ${activeDayIndex + 1}` : todayContext.dayName}
+                    </span>
                   </>
                 ) : (
                   <>
@@ -107,7 +136,7 @@ export default async function FitnessPage() {
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
                     </span>
                     <span className="text-xs font-bold text-slate-300 truncate">
-                      {todayContext.dayName} — {todayContext.focus}
+                      {activeDayIndex !== undefined ? `Day ${activeDayIndex + 1}` : todayContext.dayName} — {todayContext.focus}
                     </span>
                   </>
                 )}
