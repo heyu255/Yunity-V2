@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronUp, Wand2, BedDouble, CalendarCheck, Pencil, Loader2, Check, X, Plus, Edit2, Save } from 'lucide-react'
 import WorkoutGenerator from '@/components/WorkoutGenerator'
+import { PlanExercisePicker } from '@/components/PlanExercisePicker'
 import { refineDayPlan, removeDayFromPlan, addDayToPlan, updateWorkoutDay } from '@/app/dashboard/ai-actions'
 import { toast } from 'sonner'
 
@@ -48,6 +49,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
   const [editExercises, setEditExercises] = useState<any[]>([])
   const [savingEdit, setSavingEdit] = useState(false)
   const [newEx, setNewEx] = useState({ name: '', sets: '3', reps: '10', rest: '60s' })
+  const [showExPicker, setShowExPicker] = useState(false)
 
   // Add day panel
   const [showAddDay, setShowAddDay] = useState(false)
@@ -152,13 +154,15 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
     setEditModeIdx(idx)
     setEditExercises(localDays[idx]?.exercises?.map((ex: any) => ({ ...ex })) ?? [])
     setNewEx({ name: '', sets: '3', reps: '10', rest: '60s' })
-    setCustomizeOpenIdx(null) // close AI panel if open
+    setShowExPicker(false)
+    setCustomizeOpenIdx(null)
   }
 
   function cancelEditMode() {
     setEditModeIdx(null)
     setEditExercises([])
     setNewEx({ name: '', sets: '3', reps: '10', rest: '60s' })
+    setShowExPicker(false)
   }
 
   function addNewExercise() {
@@ -171,6 +175,7 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
       tip: '',
     }])
     setNewEx({ name: '', sets: '3', reps: '10', rest: '60s' })
+    setShowExPicker(false)
   }
 
   function removeEditExercise(exIdx: number) {
@@ -350,7 +355,26 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
 
                               {/* Add exercise form */}
                               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-3 space-y-2">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Add exercise</p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Add exercise</p>
+                                  <button
+                                    onClick={() => setShowExPicker(v => !v)}
+                                    className="text-[10px] font-semibold text-slate-400 hover:text-slate-700 transition-colors"
+                                  >
+                                    {showExPicker ? 'Close browser' : 'Browse exercises'}
+                                  </button>
+                                </div>
+
+                                {showExPicker && (
+                                  <PlanExercisePicker
+                                    onSelect={(name, rest) => {
+                                      setNewEx(prev => ({ ...prev, name, rest }))
+                                      setShowExPicker(false)
+                                    }}
+                                    onClose={() => setShowExPicker(false)}
+                                  />
+                                )}
+
                                 <SmallInput
                                   placeholder="Exercise name"
                                   value={newEx.name}
