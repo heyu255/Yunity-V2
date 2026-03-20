@@ -123,7 +123,7 @@
 .animate-marquee {
   position: absolute;
   white-space: nowrap;
-  animation: marquee 18s linear infinite;
+  animation: marquee 30s linear infinite;
 }
 
 @layer base {
