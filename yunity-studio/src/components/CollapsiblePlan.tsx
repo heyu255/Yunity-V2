@@ -43,6 +43,11 @@ export function CollapsiblePlan({ isPremium, goal, initialPlan, initialPlanName,
 
   const hasplan = !!initialPlan
 
+  // Sync localDays when a new plan is saved and props update
+  useEffect(() => {
+    setLocalDays(initialPlan?.days ?? [])
+  }, [initialPlan])
+
   useEffect(() => {
     if (!workoutId) return
     const match = document.cookie.match(/yunity_active_day=([^;]+)/)

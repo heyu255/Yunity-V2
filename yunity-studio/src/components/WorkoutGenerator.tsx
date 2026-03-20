@@ -173,8 +173,8 @@ export default function WorkoutGenerator({ isPremium, goal, initialPlan, initial
         </div>
       )}
 
-      {/* Plan tabs — hidden in editor mode to avoid duplicate weekly view */}
-      {plan && !editorMode && (
+      {/* Plan tabs — hidden in editor mode only when plan is already saved (to avoid duplicate weekly view) */}
+      {plan && (!editorMode || !isSaved) && (
         <Tabs defaultValue={plan.days[0]?.day} className="w-full">
           <div className="overflow-x-auto pb-1">
           <TabsList className="grid grid-cols-7 w-full min-w-[420px] h-14 bg-slate-100 p-1.5 rounded-xl">
