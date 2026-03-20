@@ -227,6 +227,30 @@ export async function getTodayPlanContext(planDays: any[], dayIndexOverride?: nu
   return { focus: todayDay.focus, dayName: todayDay.day, isRest: false, hasHistory, exercises: result, totalVolumeLastSession }
 }
 
+/**
+ * Client-callable action: fetches the latest plan from the DB then
+ * recomputes today's context. Used by TodayWorkoutCard to refresh
+ * itself after exercises are edited without a full page reload.
+ */
+export async function fetchTodayContext(
+  workoutId: string,
+  dayIndexOverride?: number
+): Promise<TodayContext | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: workout } = await supabase
+    .from('workouts')
+    .select('plan')
+    .eq('id', workoutId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!workout?.plan?.days) return null
+  return getTodayPlanContext(workout.plan.days, dayIndexOverride)
+}
+
 export async function getExerciseHistory(exerciseName: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

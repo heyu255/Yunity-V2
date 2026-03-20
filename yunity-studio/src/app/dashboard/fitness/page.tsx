@@ -3,10 +3,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { CollapsiblePlan } from '@/components/CollapsiblePlan'
 import { CollapsibleArchive } from '@/components/CollapsibleArchive'
-import { Calendar, Zap, BedDouble, TrendingUp, Play, Flame } from 'lucide-react'
+import { TodayWorkoutCard } from '@/components/TodayWorkoutCard'
+import { Calendar, Zap, Flame } from 'lucide-react'
 
 import { getTodayPlanContext } from './fitness-actions'
-import { ExerciseVideoButton } from '@/components/ExerciseVideoModal'
 import { getTranslations } from 'next-intl/server'
 import { getTrialStatus } from '@/utils/trial'
 import { cookies } from 'next/headers'
@@ -119,96 +119,20 @@ export default async function FitnessPage() {
             )}
           </div>
 
-          {/* Right: Today's context card */}
+          {/* Right: Today's context card — client component, refreshes on plan edits */}
           {todayContext && (
-            <div className="w-full sm:w-72 rounded-xl bg-white/5 border border-white/10 overflow-hidden shrink-0">
-              {/* Card header */}
-              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10">
-                {todayContext.isRest ? (
-                  <>
-                    <BedDouble size={13} className="text-slate-400" />
-                    <span className="text-xs font-bold text-slate-300">{tCommon('rest_day')}</span>
-                    <span className="text-xs text-slate-500 ml-auto">
-                      {activeDayIndex !== undefined ? `Day ${activeDayIndex + 1}` : todayContext.dayName}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="relative flex h-1.5 w-1.5 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                    </span>
-                    <span className="text-xs font-bold text-slate-300 truncate">
-                      {activeDayIndex !== undefined ? `Day ${activeDayIndex + 1}` : todayContext.dayName} — {todayContext.focus}
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* Exercise rows */}
-              {!todayContext.isRest && (
-                <div className="divide-y divide-white/5">
-                  {todayContext.exercises.map(ex => (
-                    <div key={ex.name} className="flex items-center justify-between gap-2 px-4 py-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-xs text-slate-400 truncate">{ex.name}</span>
-                        <ExerciseVideoButton exerciseName={ex.name} />
-                      </div>
-                      <div className="shrink-0 text-right">
-                        {ex.last ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-slate-300">
-                              {ex.last.weight}{ex.last.unit}×{ex.last.reps}
-                            </span>
-                            {ex.suggestWeight && (
-                              <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 rounded px-1.5 py-0.5">
-                                <TrendingUp size={9} /> {ex.suggestWeight}{ex.last?.unit}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-500">{ex.target}</span>
-                        )}
-                        {ex.allTimePR && (
-                          <p className="text-[10px] text-amber-400/70 text-right">
-                            PR {ex.allTimePR.weight}{ex.allTimePR.unit}×{ex.allTimePR.reps}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {todayContext.hasHistory && todayContext.totalVolumeLastSession > 0 && (
-                    <div className="px-4 py-2 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-500 uppercase tracking-wide">Last session vol.</span>
-                      <span className="text-[10px] font-bold text-slate-400">
-                        {todayContext.totalVolumeLastSession.toLocaleString()} kg
-                      </span>
-                    </div>
-                  )}
-
-                  {!todayContext.hasHistory && (
-                    <div className="px-4 py-2 text-center">
-                      <p className="text-[10px] text-slate-500">{t('log_to_track')}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Start Today's Workout CTA */}
-              {canStartToday ? (
-                <Link
-                  href={`/dashboard/fitness/workout/${latestWorkoutId}/log/${todayDayIndex}`}
-                  className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-4 py-2.5 text-sm font-bold text-white"
-                >
-                  <Play size={13} fill="white" /> {t('start_workout')}
-                </Link>
-              ) : todayContext.isRest ? (
-                <div className="px-4 py-3 text-center">
-                  <p className="text-xs text-slate-500">{t('recover')}</p>
-                </div>
-              ) : null}
-            </div>
+            <TodayWorkoutCard
+              initialContext={todayContext}
+              workoutId={latestWorkoutId}
+              activeDayIndex={activeDayIndex}
+              todayDayIndex={todayDayIndex}
+              labels={{
+                restDay: tCommon('rest_day'),
+                startWorkout: t('start_workout'),
+                recover: t('recover'),
+                logToTrack: t('log_to_track'),
+              }}
+            />
           )}
         </div>
       </header>
