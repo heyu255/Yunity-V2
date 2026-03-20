@@ -4,9 +4,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import {
   Sparkles, Plus, Pencil, Trash2, Check, X,
-  Loader2, ChevronDown, ChevronUp, Utensils, Flame, Settings2
+  Loader2, ChevronDown, ChevronUp, Utensils, Flame, Settings2,
+  Clock, History
 } from 'lucide-react'
-import { saveMealLog, generateMealIdea, estimateNutrition, type MealEntry, type MealIdea } from './nutrition-actions'
+import { saveMealLog, generateMealIdea, estimateNutrition, type MealEntry, type MealIdea, type PastLog, type FrequentMeal } from './nutrition-actions'
 import { toast } from 'sonner'
 
 const MEAL_TYPES = ['Breakfast', 'Morning Snack', 'Lunch', 'Afternoon Snack', 'Dinner', 'Evening Snack']
@@ -46,6 +47,8 @@ export default function NutritionClient({
   proteinTarget: proteinTargetProp,
   carbsTarget: carbsTargetProp,
   fatsTarget: fatsTargetProp,
+  pastLogs = [],
+  frequentMeals = [],
 }: {
   logId: string
   initialMeals: MealEntry[]
@@ -54,6 +57,8 @@ export default function NutritionClient({
   proteinTarget?: number
   carbsTarget?: number
   fatsTarget?: number
+  pastLogs?: PastLog[]
+  frequentMeals?: FrequentMeal[]
 }) {
   const [meals, setMeals] = useState<MealEntry[]>(initialMeals)
   const [saving, setSaving] = useState(false)
@@ -67,6 +72,14 @@ export default function NutritionClient({
   const [addValues, setAddValues] = useState<Partial<MealEntry>>({ name: 'Breakfast', food: '', calories: 0, protein: 0, carbs: 0, fats: 0 })
   const [estimating, setEstimating] = useState(false)
   const [estimated, setEstimated] = useState(false)
+
+  // Frequent meals quick-add
+  const [showFrequent, setShowFrequent] = useState(false)
+  const [frequentMealType, setFrequentMealType] = useState('Breakfast')
+
+  // Past days history
+  const [showHistory, setShowHistory] = useState(false)
+  const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
   // AI ideas
   const [showIdeas, setShowIdeas] = useState(false)
@@ -163,6 +176,20 @@ export default function NutritionClient({
     }
     persist([...meals, newMeal])
     toast.success(`${ideaType} added to log`)
+  }
+
+  function logFrequentMeal(meal: FrequentMeal) {
+    const newMeal: MealEntry = {
+      id: crypto.randomUUID(),
+      name: frequentMealType,
+      food: meal.food,
+      calories: meal.calories,
+      protein: meal.protein,
+      carbs: meal.carbs,
+      fats: meal.fats,
+    }
+    persist([...meals, newMeal])
+    toast.success('Meal added from history')
   }
 
   async function handleGenerateIdeas() {
@@ -428,6 +455,70 @@ export default function NutritionClient({
         )}
       </section>
 
+      {/* ── Frequent Meals ─────────────────────────────────── */}
+      {frequentMeals.length > 0 && (
+        <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <button
+            onClick={() => setShowFrequent(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Clock size={15} className="text-blue-500" />
+              <h2 className="font-bold text-slate-900">Your Usual Meals</h2>
+              <span className="text-xs text-slate-400">Quick-add from your past</span>
+            </div>
+            {showFrequent ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+          </button>
+
+          {showFrequent && (
+            <div className="border-t border-slate-100 p-5 space-y-4 animate-in fade-in duration-150">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Log as:</span>
+                {MEAL_TYPES.map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setFrequentMealType(type)}
+                    className={`text-xs font-semibold rounded-full px-3 py-1 border transition-colors ${
+                      frequentMealType === type
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-2">
+                {frequentMeals.map((meal, i) => (
+                  <div key={i} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-slate-800 truncate">{meal.food}</span>
+                        <span className="text-[10px] text-slate-400 bg-white border border-slate-200 rounded-full px-1.5 py-0.5 shrink-0">{meal.count}×</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="text-xs text-slate-500 flex items-center gap-0.5">
+                          <Flame size={10} className="text-orange-400" /> {meal.calories} kcal
+                        </span>
+                        <MacroPill label="P" value={meal.protein} color="bg-blue-50 text-blue-500" />
+                        <MacroPill label="C" value={meal.carbs} color="bg-amber-50 text-amber-500" />
+                        <MacroPill label="F" value={meal.fats} color="bg-rose-50 text-rose-500" />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => logFrequentMeal(meal)}
+                      className="shrink-0 flex items-center gap-1 text-xs font-bold bg-slate-900 hover:bg-slate-700 text-white rounded-lg px-3 py-1.5 transition-colors"
+                    >
+                      <Plus size={12} /> Log
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ── AI Meal Ideas ──────────────────────────────────── */}
       <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <button
@@ -518,6 +609,93 @@ export default function NutritionClient({
           </div>
         )}
       </section>
+
+      {/* ── Past Days History ───────────────────────────────── */}
+      {pastLogs.length > 0 && (
+        <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <button
+            onClick={() => setShowHistory(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <History size={15} className="text-slate-400" />
+              <h2 className="font-bold text-slate-900">Past Days</h2>
+              <span className="text-xs text-slate-400">{pastLogs.length} day{pastLogs.length !== 1 ? 's' : ''} logged</span>
+            </div>
+            {showHistory ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+          </button>
+
+          {showHistory && (
+            <div className="border-t border-slate-100 divide-y divide-slate-100 animate-in fade-in duration-150">
+              {pastLogs.map(log => {
+                const dayMeals = log.meals as MealEntry[]
+                const dayTotal = dayMeals.reduce((s, m) => s + (m.calories || 0), 0)
+                const dayProtein = dayMeals.reduce((s, m) => s + (m.protein || 0), 0)
+                const dayCarbs = dayMeals.reduce((s, m) => s + (m.carbs || 0), 0)
+                const dayFats = dayMeals.reduce((s, m) => s + (m.fats || 0), 0)
+                const isExpanded = expandedDay === log.id
+                const dateLabel = new Date(log.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+
+                return (
+                  <div key={log.id}>
+                    <button
+                      onClick={() => setExpandedDay(isExpanded ? null : log.id)}
+                      className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        {isExpanded ? <ChevronUp size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+                        <span className="text-sm font-semibold text-slate-700">{dateLabel}</span>
+                        <span className="text-xs text-slate-400">{dayMeals.length} meal{dayMeals.length !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="hidden sm:flex gap-1.5">
+                          <MacroPill label="P" value={dayProtein} color="bg-blue-50 text-blue-500" />
+                          <MacroPill label="C" value={dayCarbs} color="bg-amber-50 text-amber-500" />
+                          <MacroPill label="F" value={dayFats} color="bg-rose-50 text-rose-500" />
+                        </div>
+                        <span className="text-sm font-bold text-slate-900">{dayTotal} kcal</span>
+                      </div>
+                    </button>
+
+                    {isExpanded && dayMeals.length > 0 && (
+                      <div className="bg-slate-50/60 divide-y divide-slate-100 border-t border-slate-100">
+                        {dayMeals.map((meal, i) => (
+                          <div key={i} className="flex items-start justify-between gap-3 px-5 py-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-bold uppercase tracking-wide text-orange-500 bg-orange-50 border border-orange-100 rounded-full px-2 py-0.5">{meal.name}</span>
+                                <span className="text-xs font-bold text-slate-600 flex items-center gap-0.5">
+                                  <Flame size={10} className="text-orange-400" /> {meal.calories} kcal
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-700 mt-1">{meal.food}</p>
+                              <div className="flex gap-1.5 mt-1 flex-wrap">
+                                <MacroPill label="P" value={meal.protein} color="bg-blue-50 text-blue-500" />
+                                <MacroPill label="C" value={meal.carbs} color="bg-amber-50 text-amber-500" />
+                                <MacroPill label="F" value={meal.fats} color="bg-rose-50 text-rose-500" />
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const newMeal: MealEntry = { ...meal, id: crypto.randomUUID() }
+                                persist([...meals, newMeal])
+                                toast.success('Meal added to today')
+                              }}
+                              className="shrink-0 text-xs font-semibold text-slate-400 hover:text-slate-700 border border-slate-200 hover:border-slate-400 rounded-lg px-2.5 py-1.5 transition-colors whitespace-nowrap"
+                            >
+                              + Today
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }
