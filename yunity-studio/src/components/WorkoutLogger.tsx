@@ -70,6 +70,13 @@ function calcOneRM(weight: number, reps: number): number {
   return Math.round(weight * (1 + reps / 30) * 10) / 10
 }
 
+function toUnit(weight: number, from: string, to: string): number {
+  if (from === to) return weight
+  if (from === 'kg' && to === 'lbs') return Math.round(weight * 2.2046 * 2) / 2
+  if (from === 'lbs' && to === 'kg') return Math.round(weight * 0.4536 * 4) / 4
+  return weight
+}
+
 export function WorkoutLogger({
   workoutId,
   dayIndex,
@@ -294,13 +301,17 @@ export function WorkoutLogger({
                         <span className="text-slate-300">~{Math.round(prevBest.oneRM * 10) / 10} 1RM</span>
                       </span>
                     )}
-                    {lastSess && (
-                      <span className="text-xs text-slate-400 text-right">
-                        Last: {lastSess.completedSets}×{lastSess.reps} @ {lastSess.weight}{lastSess.unit}
-                        <br />
-                        <span className="text-emerald-500 font-medium">↑ Try {lastSess.suggestWeight}{lastSess.unit}</span>
-                      </span>
-                    )}
+                    {lastSess && (() => {
+                      const lastW = toUnit(lastSess.weight, lastSess.unit, unit)
+                      const suggestW = toUnit(lastSess.suggestWeight, lastSess.unit, unit)
+                      return (
+                        <span className="text-xs text-slate-400 text-right">
+                          Last: {lastSess.completedSets}×{lastSess.reps} @ {lastW}{unit}
+                          <br />
+                          <span className="text-emerald-500 font-medium">↑ Try {suggestW}{unit}</span>
+                        </span>
+                      )
+                    })()}
                   </div>
                   {isCustom && (
                     <button
@@ -362,6 +373,7 @@ export function WorkoutLogger({
                     const w = parseFloat(set.weight)
                     const r = parseInt(set.reps)
                     const oneRM = set.completed && w > 0 && r > 0 ? calcOneRM(w, r) : null
+                    const suggestW = lastSess ? toUnit(lastSess.suggestWeight, lastSess.unit, unit) : null
 
                     return (
                       <div key={setIdx}>
@@ -375,18 +387,18 @@ export function WorkoutLogger({
                             type="number"
                             min="0"
                             step="0.5"
-                            placeholder={lastSess ? `↑${lastSess.suggestWeight}` : "—"}
+                            placeholder={suggestW != null ? `e.g. ${suggestW}` : "—"}
                             value={set.weight}
                             onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
-                            className="h-11 text-sm"
+                            className="h-11 text-sm placeholder:text-slate-300 placeholder:italic"
                           />
                           <Input
                             type="number"
                             min="0"
-                            placeholder={lastSess ? `${lastSess.reps}` : "—"}
+                            placeholder={lastSess ? `e.g. ${lastSess.reps}` : "—"}
                             value={set.reps}
                             onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
-                            className="h-11 text-sm"
+                            className="h-11 text-sm placeholder:text-slate-300 placeholder:italic"
                           />
                           <button
                             onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
