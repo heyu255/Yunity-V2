@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Trophy, Plus, X, Sparkles } from 'lucide-react'
+import { Check, Trophy, Plus, X, Sparkles, Timer } from 'lucide-react'
 import { AddExercisePanel } from '@/components/AddExercisePanel'
 import { ExerciseVideoButton } from '@/components/ExerciseVideoModal'
 import { Button } from '@/components/ui/button'
@@ -21,14 +21,28 @@ type Exercise = {
   tip?: string
   instructions?: string
   isCustom?: boolean
+  type?: string
 }
 
 type SetState = { reps: string; weight: string; completed: boolean; duration: string; distance: string }
 type ExerciseState = { name: string; sets: SetState[] }
+type ExerciseType = 'strength' | 'cardio' | 'timed' | 'bodyweight'
 
-const CARDIO_PATTERN = /\b(jog|jogging|run|running|walk|walking|cycl|bik(e|ing)|swim|swimming|rowing machine|jump rope|skipping|elliptical|stair|treadmill|cardio|hiit|sprint(ing)?)\b/i
-function isCardio(name: string): boolean {
-  return CARDIO_PATTERN.test(name)
+// Cardio: log duration + distance
+const CARDIO_PATTERN = /\b(jog(ging)?|run(ning)?|walk(ing)?|hik(e|ing)|cycl(e|ing)|bik(e|ing)|spin(ning)?|row(ing)?|swim(ming)?|jump\s?rope|skip(ping)?|elliptical|stair(s)?|treadmill|cardio|hiit|sprint(ing)?|assault\s?bike|cross\s?trainer|indoor\s?cycling)\b/i
+
+// Timed holds: log duration in seconds only
+const TIMED_PATTERN = /\b(plank|side\s?plank|wall\s?sit|dead\s?hang|l.?sit|hollow\s?hold|static\s?hold|isometric|farmer.?hold|hanging\s?hold|bear\s?hold)\b/i
+
+// Bodyweight: log reps only, no weight
+const BODYWEIGHT_PATTERN = /\b(push.?up|pull.?up|chin.?up|burpee|crunch|sit.?up|leg\s?raise|knee\s?raise|mountain\s?climber|box\s?jump|jump\s?squat|jump\s?lunge|flutter\s?kick|v.?up|russian\s?twist|bicycle\s?crunch|reverse\s?crunch|superman|inchworm|bear\s?crawl|hip\s?raise|glute\s?bridge|air\s?squat|bodyweight\s?squat|jumping\s?jack|jumping\s?jacks|step.?up)\b/i
+
+function getExerciseType(name: string, explicitType?: string): ExerciseType {
+  if (explicitType === 'cardio' || explicitType === 'timed' || explicitType === 'bodyweight' || explicitType === 'strength') return explicitType
+  if (CARDIO_PATTERN.test(name)) return 'cardio'
+  if (TIMED_PATTERN.test(name)) return 'timed'
+  if (BODYWEIGHT_PATTERN.test(name)) return 'bodyweight'
+  return 'strength'
 }
 
 function initLogs(exercises: Exercise[]): ExerciseState[] {
@@ -38,16 +52,12 @@ function initLogs(exercises: Exercise[]): ExerciseState[] {
   }))
 }
 
-// Infer default rest based on exercise name when plan doesn't specify
 function inferRestFromName(name: string): number {
   const n = name.toLowerCase()
-  // Big compound movements — 2 min
   if (/squat|deadlift|bench press|barbell row|pull.?up|chin.?up|overhead press|ohp|rdl|hip thrust|leg press/.test(n))
     return 120
-  // Medium compounds — 90 s
   if (/dip|lunge|incline|decline|seated row|lat pull|push press|arnold|step.?up/.test(n))
     return 90
-  // Isolation / small muscles — 60 s
   return 60
 }
 
@@ -60,7 +70,6 @@ function parseRestSeconds(restStr: string, exerciseName = ''): number {
   const numMatch = restStr.match(/(\d+)/)
   if (numMatch) {
     const explicit = parseInt(numMatch[1])
-    // If plan gives only the generic 60s fallback, override with name-based inference
     return explicit === 60 ? inferRestFromName(exerciseName) : explicit
   }
   return inferRestFromName(exerciseName)
@@ -76,6 +85,12 @@ function toUnit(weight: number, from: string, to: string): number {
   if (from === 'lbs' && to === 'kg') return Math.round(weight * 0.4536 * 4) / 4
   return weight
 }
+
+const ADD_SET_BTN = 'w-full py-2.5 text-xs font-semibold text-slate-400 hover:text-emerald-600 hover:bg-emerald-50/60 flex items-center justify-center gap-1 transition-colors border-t border-slate-100'
+const COMPLETE_BTN = (completed: boolean) =>
+  `w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
+    completed ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 hover:border-slate-500'
+  }`
 
 export function WorkoutLogger({
   workoutId,
@@ -96,7 +111,6 @@ export function WorkoutLogger({
 }) {
   const router = useRouter()
 
-  // allExercises grows when user adds custom ones
   const [allExercises, setAllExercises] = useState<Exercise[]>(exercises)
   const [logs, setLogs] = useState<ExerciseState[]>(() => initLogs(exercises))
 
@@ -108,7 +122,6 @@ export function WorkoutLogger({
   const [submitting, setSubmitting] = useState(false)
   const [timer, setTimer] = useState<{ seconds: number; exerciseName: string } | null>(null)
   const [newPRs, setNewPRs] = useState<Set<string>>(new Set())
-
   const [showAddForm, setShowAddForm] = useState(exercises.length === 0)
 
   function toggleUnit(u: 'kg' | 'lbs') {
@@ -127,15 +140,15 @@ export function WorkoutLogger({
 
     if (field === 'completed') {
       const exName = allExercises[exIdx]?.name ?? logs[exIdx].name
+      const exType = getExerciseType(exName, allExercises[exIdx]?.type)
 
       if (value === true) {
-        if (!isCardio(exName)) {
+        // PR tracking — strength only
+        if (exType === 'strength') {
           const currentSet = logs[exIdx].sets[setIdx]
           const weight = parseFloat(currentSet.weight)
           const reps = parseInt(currentSet.reps)
-
           if (weight > 0 && reps > 0) {
-            // Normalize to kg for consistent cross-unit PR comparison
             const weightKg = unit === 'lbs' ? weight * 0.453592 : weight
             const oneRM = calcOneRM(weightKg, reps)
             const exKey = logs[exIdx].name.toLowerCase().trim()
@@ -144,12 +157,13 @@ export function WorkoutLogger({
               setNewPRs(prev => new Set([...prev, exKey]))
             }
           }
-
+        }
+        // Rest timer — everything except cardio
+        if (exType !== 'cardio') {
           const restSecs = parseRestSeconds(allExercises[exIdx]?.rest ?? '', exName)
           setTimer({ seconds: restSecs, exerciseName: exName })
         }
       } else {
-        // Un-completing a set cancels the rest timer
         setTimer(null)
       }
     }
@@ -186,25 +200,35 @@ export function WorkoutLogger({
   async function handleFinish() {
     setSubmitting(true)
     try {
-      const payload: ExerciseLog[] = logs.map(ex => ({
-        name: ex.name,
-        sets: ex.sets.map((s, i) => isCardio(ex.name)
-          ? {
-              set_number: i + 1,
-              reps: null,
-              weight: null,
-              completed: s.completed,
+      const payload: ExerciseLog[] = logs.map((ex, i) => {
+        const type = getExerciseType(ex.name, allExercises[i]?.type)
+        return {
+          name: ex.name,
+          sets: ex.sets.map((s, i) => {
+            if (type === 'cardio') return {
+              set_number: i + 1, reps: null, weight: null, completed: s.completed,
               duration_min: s.duration ? parseFloat(s.duration) : null,
               distance: s.distance ? parseFloat(s.distance) : null,
             }
-          : {
+            if (type === 'timed') return {
+              set_number: i + 1, reps: null, weight: null, completed: s.completed,
+              duration_min: s.duration ? parseFloat(s.duration) / 60 : null, // sec → min
+              distance: null,
+            }
+            if (type === 'bodyweight') return {
+              set_number: i + 1, reps: s.reps ? parseInt(s.reps) : null, weight: null,
+              completed: s.completed, duration_min: null, distance: null,
+            }
+            // strength
+            return {
               set_number: i + 1,
               reps: s.reps ? parseInt(s.reps) : null,
               weight: s.weight ? parseFloat(s.weight) : null,
               completed: s.completed,
             }
-        ),
-      }))
+          }),
+        }
+      })
       await logWorkout(workoutId, dayIndex, dayName, payload, unit)
       router.push('/dashboard/fitness')
     } catch {
@@ -277,7 +301,7 @@ export function WorkoutLogger({
         const lastSess = lastSessions[exKey]
         const isNewPR = newPRs.has(exKey)
         const isCustom = exercise?.isCustom
-        const cardio = isCardio(ex.name)
+        const exType = getExerciseType(ex.name, exercise?.type)
 
         return (
           <Card key={exIdx} className={`overflow-hidden shadow-sm ${isCustom ? 'border-violet-200' : 'border-slate-200'}`}>
@@ -290,6 +314,16 @@ export function WorkoutLogger({
                     {isCustom && (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-violet-500 bg-violet-50 border border-violet-200 rounded-full px-1.5 py-0.5">
                         <Sparkles size={9} /> Custom
+                      </span>
+                    )}
+                    {exType === 'timed' && (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-blue-500 bg-blue-50 border border-blue-200 rounded-full px-1.5 py-0.5">
+                        <Timer size={9} /> Timed
+                      </span>
+                    )}
+                    {exType === 'bodyweight' && (
+                      <span className="text-[10px] font-bold text-orange-500 bg-orange-50 border border-orange-200 rounded-full px-1.5 py-0.5">
+                        Bodyweight
                       </span>
                     )}
                   </div>
@@ -310,14 +344,14 @@ export function WorkoutLogger({
                         <Trophy size={11} /> New PR!
                       </span>
                     )}
-                    {prevBest && !isNewPR && (
+                    {prevBest && !isNewPR && exType === 'strength' && (
                       <span className="text-xs text-slate-400 text-right">
                         PR: {prevBest.weight}{prevBest.unit} × {prevBest.reps}
                         <br />
                         <span className="text-slate-300">~{Math.round(prevBest.oneRM * 10) / 10} 1RM</span>
                       </span>
                     )}
-                    {lastSess && (() => {
+                    {lastSess && exType === 'strength' && (() => {
                       const lastW = toUnit(lastSess.weight, lastSess.unit, unit)
                       const suggestW = toUnit(lastSess.suggestWeight, lastSess.unit, unit)
                       return (
@@ -341,8 +375,10 @@ export function WorkoutLogger({
                 </div>
               </div>
             </CardHeader>
+
             <CardContent className="p-0">
-              {cardio ? (
+              {/* ── Cardio: duration + distance ── */}
+              {exType === 'cardio' && (
                 <div className="divide-y divide-slate-100">
                   <div className="grid grid-cols-[1fr_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                     <span>Duration (min)</span>
@@ -350,40 +386,71 @@ export function WorkoutLogger({
                     <span />
                   </div>
                   {ex.sets.map((set, setIdx) => (
-                    <div
-                      key={setIdx}
-                      className={`grid grid-cols-[1fr_1fr_3rem] gap-3 px-4 py-2.5 items-center transition-colors ${set.completed ? 'bg-green-50' : ''}`}
-                    >
-                      <Input
-                        type="number" min="0" step="1" placeholder="e.g. 20"
-                        value={set.duration}
-                        onChange={e => updateSet(exIdx, setIdx, 'duration', e.target.value)}
-                        className="h-11 text-sm"
-                      />
-                      <Input
-                        type="number" min="0" step="0.1" placeholder="optional"
-                        value={set.distance}
-                        onChange={e => updateSet(exIdx, setIdx, 'distance', e.target.value)}
-                        className="h-11 text-sm"
-                      />
-                      <button
-                        onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
-                        className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
-                          set.completed ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 hover:border-slate-500'
-                        }`}
-                      >
+                    <div key={setIdx} className={`grid grid-cols-[1fr_1fr_3rem] gap-3 px-4 py-2.5 items-center transition-colors ${set.completed ? 'bg-green-50' : ''}`}>
+                      <Input type="number" min="0" step="1" placeholder="e.g. 20" value={set.duration}
+                        onChange={e => updateSet(exIdx, setIdx, 'duration', e.target.value)} className="h-11 text-sm" />
+                      <Input type="number" min="0" step="0.1" placeholder="optional" value={set.distance}
+                        onChange={e => updateSet(exIdx, setIdx, 'distance', e.target.value)} className="h-11 text-sm" />
+                      <button onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)} className={COMPLETE_BTN(set.completed)}>
                         {set.completed && <Check size={14} strokeWidth={3} />}
                       </button>
                     </div>
                   ))}
-                  <button
-                    onClick={() => handleAddSet(exIdx)}
-                    className="w-full py-2.5 text-xs font-semibold text-slate-400 hover:text-emerald-600 hover:bg-emerald-50/60 flex items-center justify-center gap-1 transition-colors"
-                  >
+                  <button onClick={() => handleAddSet(exIdx)} className={ADD_SET_BTN}>
                     <Plus size={13} /> Add Set
                   </button>
                 </div>
-              ) : (
+              )}
+
+              {/* ── Timed holds: duration in seconds ── */}
+              {exType === 'timed' && (
+                <div className="divide-y divide-slate-100">
+                  <div className="grid grid-cols-[1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span>Duration (sec)</span>
+                    <span />
+                  </div>
+                  {ex.sets.map((set, setIdx) => (
+                    <div key={setIdx} className={`grid grid-cols-[1fr_3rem] gap-3 px-4 py-2.5 items-center transition-colors ${set.completed ? 'bg-green-50' : ''}`}>
+                      <Input type="number" min="0" step="5" placeholder="e.g. 30" value={set.duration}
+                        onChange={e => updateSet(exIdx, setIdx, 'duration', e.target.value)} className="h-11 text-sm" />
+                      <button onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)} className={COMPLETE_BTN(set.completed)}>
+                        {set.completed && <Check size={14} strokeWidth={3} />}
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={() => handleAddSet(exIdx)} className={ADD_SET_BTN}>
+                    <Plus size={13} /> Add Set
+                  </button>
+                </div>
+              )}
+
+              {/* ── Bodyweight: reps only ── */}
+              {exType === 'bodyweight' && (
+                <div className="divide-y divide-slate-100">
+                  <div className="grid grid-cols-[2.5rem_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <span>Set</span>
+                    <span>Reps</span>
+                    <span />
+                  </div>
+                  {ex.sets.map((set, setIdx) => (
+                    <div key={setIdx} className={`grid grid-cols-[2.5rem_1fr_3rem] gap-3 px-4 py-2 items-center transition-colors ${set.completed ? 'bg-green-50' : ''}`}>
+                      <span className="text-sm font-bold text-slate-500">{setIdx + 1}</span>
+                      <Input type="number" min="0" placeholder={lastSess ? `e.g. ${lastSess.reps}` : 'e.g. 15'}
+                        value={set.reps} onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
+                        className="h-11 text-sm placeholder:text-slate-300 placeholder:italic" />
+                      <button onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)} className={COMPLETE_BTN(set.completed)}>
+                        {set.completed && <Check size={14} strokeWidth={3} />}
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={() => handleAddSet(exIdx)} className={ADD_SET_BTN}>
+                    <Plus size={13} /> Add Set
+                  </button>
+                </div>
+              )}
+
+              {/* ── Strength: weight + reps ── */}
+              {exType === 'strength' && (
                 <div className="divide-y divide-slate-100">
                   <div className="grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-400">
                     <span>Set</span>
@@ -396,40 +463,19 @@ export function WorkoutLogger({
                     const r = parseInt(set.reps)
                     const oneRM = set.completed && w > 0 && r > 0 ? calcOneRM(w, r) : null
                     const suggestW = lastSess ? toUnit(lastSess.suggestWeight, lastSess.unit, unit) : null
-
                     return (
                       <div key={setIdx}>
-                        <div
-                          className={`grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 items-center transition-colors ${
-                            set.completed ? 'bg-green-50' : ''
-                          }`}
-                        >
+                        <div className={`grid grid-cols-[2.5rem_1fr_1fr_3rem] gap-3 px-4 py-2 items-center transition-colors ${set.completed ? 'bg-green-50' : ''}`}>
                           <span className="text-sm font-bold text-slate-500">{setIdx + 1}</span>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.5"
-                            placeholder={suggestW != null ? `e.g. ${suggestW}` : "—"}
-                            value={set.weight}
-                            onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
-                            className="h-11 text-sm placeholder:text-slate-300 placeholder:italic"
-                          />
-                          <Input
-                            type="number"
-                            min="0"
-                            placeholder={lastSess ? `e.g. ${lastSess.reps}` : "—"}
-                            value={set.reps}
-                            onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
-                            className="h-11 text-sm placeholder:text-slate-300 placeholder:italic"
-                          />
-                          <button
-                            onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)}
-                            className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
-                              set.completed
-                                ? 'bg-green-500 border-green-500 text-white'
-                                : 'border-slate-300 hover:border-slate-500'
-                            }`}
-                          >
+                          <Input type="number" min="0" step="0.5"
+                            placeholder={suggestW != null ? `e.g. ${suggestW}` : '—'}
+                            value={set.weight} onChange={e => updateSet(exIdx, setIdx, 'weight', e.target.value)}
+                            className="h-11 text-sm placeholder:text-slate-300 placeholder:italic" />
+                          <Input type="number" min="0"
+                            placeholder={lastSess ? `e.g. ${lastSess.reps}` : '—'}
+                            value={set.reps} onChange={e => updateSet(exIdx, setIdx, 'reps', e.target.value)}
+                            className="h-11 text-sm placeholder:text-slate-300 placeholder:italic" />
+                          <button onClick={() => updateSet(exIdx, setIdx, 'completed', !set.completed)} className={COMPLETE_BTN(set.completed)}>
                             {set.completed && <Check size={14} strokeWidth={3} />}
                           </button>
                         </div>
@@ -441,10 +487,7 @@ export function WorkoutLogger({
                       </div>
                     )
                   })}
-                  <button
-                    onClick={() => handleAddSet(exIdx)}
-                    className="w-full py-2.5 text-xs font-semibold text-slate-400 hover:text-emerald-600 hover:bg-emerald-50/60 flex items-center justify-center gap-1 transition-colors border-t border-slate-100"
-                  >
+                  <button onClick={() => handleAddSet(exIdx)} className={ADD_SET_BTN}>
                     <Plus size={13} /> Add Set
                   </button>
                 </div>

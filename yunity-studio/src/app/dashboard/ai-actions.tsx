@@ -159,11 +159,17 @@ Return ONLY a JSON object with this structure:
       "day": "string",
       "focus": "string",
       "exercises": [
-        { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
+        { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string", "type": "strength|cardio|timed|bodyweight" }
       ]
     }
   ]
 }
+
+For the "type" field:
+- "strength": weighted exercises logged with weight + reps (e.g. bench press, squat, deadlift, rows)
+- "cardio": logged with duration + distance (e.g. running, cycling, rowing, HIIT, jump rope)
+- "timed": static holds logged with duration in seconds (e.g. plank, wall sit, dead hang)
+- "bodyweight": logged with reps only, no weight (e.g. push-ups, pull-ups, burpees, crunches)
 `
 
   const response = await openai.chat.completions.create({
@@ -207,9 +213,11 @@ Apply their request (swap/remove/add exercises as asked) and return ONLY a JSON 
   "day": "${currentDay.day}",
   "focus": "string",
   "exercises": [
-    { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
+    { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string", "type": "strength|cardio|timed|bodyweight" }
   ]
-}`
+}
+
+For "type": strength=weight+reps, cardio=duration+distance, timed=hold duration in seconds, bodyweight=reps only.`
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
@@ -270,9 +278,11 @@ Return ONLY a JSON object:
   "day": "Day ${dayNumber}",
   "focus": "${focus}",
   "exercises": [
-    { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string" }
+    { "name": "string", "sets": number, "reps": "string", "rest": "string", "tip": "string", "type": "strength|cardio|timed|bodyweight" }
   ]
-}`
+}
+
+For "type": strength=weight+reps, cardio=duration+distance, timed=hold duration in seconds, bodyweight=reps only.`
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
