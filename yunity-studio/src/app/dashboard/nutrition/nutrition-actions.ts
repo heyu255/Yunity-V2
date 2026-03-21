@@ -54,7 +54,17 @@ export async function getTodayMealLog(date?: string) {
     .select()
     .single()
 
-  return created
+  if (created) return created
+
+  // Insert may have lost a race (unique constraint). Re-fetch the winner.
+  const { data: refetched } = await supabase
+    .from('meal_logs')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('date', today)
+    .single()
+
+  return refetched
 }
 
 export async function getPastMealLogs(limit = 30, date?: string): Promise<PastLog[]> {
@@ -80,11 +90,17 @@ export async function saveMealLog(logId: string, meals: MealEntry[]) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
 
-  await supabase
+  if (!logId) throw new Error('No meal log ID — cannot save')
+
+  const { data, error } = await supabase
     .from('meal_logs')
-    .update({ meals, updated_at: new Date().toISOString() })
+    .update({ meals })
     .eq('id', logId)
     .eq('user_id', user.id)
+    .select('id')
+
+  if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('Meal log not saved — RLS UPDATE policy may be missing on meal_logs')
 
   revalidatePath('/dashboard/nutrition')
 }
