@@ -1,22 +1,20 @@
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getTodayMealLog, getPastMealLogs, type MealEntry, type FrequentMeal } from './nutrition-actions'
 import NutritionClient from './NutritionClient'
 
 export const dynamic = 'force-dynamic'
 
-interface Props {
-  searchParams: Promise<{ date?: string }>
-}
-
-export default async function NutritionPage({ searchParams }: Props) {
+export default async function NutritionPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { date: dateParam } = await searchParams
-  const today = dateParam ?? new Date().toISOString().split('T')[0]
+  // Prefer the browser's local date (set by the client as a cookie) over server UTC
+  const cookieStore = await cookies()
+  const today = cookieStore.get('yunity_local_date')?.value ?? new Date().toISOString().split('T')[0]
 
   const [profileRes, logRes, burnedRes, pastLogs] = await Promise.all([
     supabase.from('profiles').select('daily_calories_target, goal, protein_target, carbs_target, fats_target').eq('id', user.id).single(),
@@ -57,7 +55,6 @@ export default async function NutritionPage({ searchParams }: Props) {
         fatsTarget={profileRes.data.fats_target ?? undefined}
         pastLogs={pastLogs}
         frequentMeals={frequentMeals}
-        serverDate={today}
       />
     </div>
   )

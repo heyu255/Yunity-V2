@@ -2,7 +2,6 @@
 
 import OpenAI from 'openai'
 import { createClient } from '@/utils/supabase/server'
-import { revalidatePath } from 'next/cache'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -101,8 +100,6 @@ export async function saveMealLog(logId: string, meals: MealEntry[]) {
 
   if (error) throw new Error(error.message)
   if (!data || data.length === 0) throw new Error('Meal log not saved — RLS UPDATE policy may be missing on meal_logs')
-
-  revalidatePath('/dashboard/nutrition')
 }
 
 export async function estimateNutrition(foodDescription: string): Promise<{ calories: number; protein: number; carbs: number; fats: number } | null> {
