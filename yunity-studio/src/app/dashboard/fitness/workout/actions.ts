@@ -59,7 +59,7 @@ function estimateCaloriesBurned(exerciseLogs: ExerciseLog[], weightKg: number): 
 }
 
 export async function logWorkout(
-  workoutId: string,
+  workoutId: string | null,
   dayIndex: number,
   dayName: string,
   exerciseLogs: ExerciseLog[],
@@ -90,8 +90,8 @@ export async function logWorkout(
 
   const { error } = await supabase.from('workout_logs').insert({
     user_id: user.id,
-    workout_id: workoutId,
-    day_index: dayIndex,
+    workout_id: workoutId ?? null,
+    day_index: dayIndex >= 0 ? dayIndex : null,
     day_name: dayName,
     exercise_logs: exerciseLogs,
     unit,
@@ -100,6 +100,6 @@ export async function logWorkout(
 
   if (error) throw new Error(error.message)
 
-  revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
+  if (workoutId) revalidatePath(`/dashboard/fitness/workout/${workoutId}`)
   revalidatePath('/dashboard/fitness')
 }

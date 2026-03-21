@@ -86,7 +86,7 @@ export function WorkoutLogger({
   lastSessions = {},
   availableExercises = [],
 }: {
-  workoutId: string
+  workoutId: string | null
   dayIndex: number
   dayName: string
   exercises: Exercise[]
@@ -109,7 +109,7 @@ export function WorkoutLogger({
   const [timer, setTimer] = useState<{ seconds: number; exerciseName: string } | null>(null)
   const [newPRs, setNewPRs] = useState<Set<string>>(new Set())
 
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(exercises.length === 0)
 
   function toggleUnit(u: 'kg' | 'lbs') {
     setUnit(u)
@@ -166,6 +166,16 @@ export function WorkoutLogger({
     }])
     setShowAddForm(false)
     toast.success(`${name} added`)
+  }
+
+  function handleAddSet(exIdx: number) {
+    setLogs(prev =>
+      prev.map((ex, i) =>
+        i === exIdx
+          ? { ...ex, sets: [...ex.sets, { reps: '', weight: '', completed: false, duration: '', distance: '' }] }
+          : ex
+      )
+    )
   }
 
   function handleRemoveCustom(exIdx: number) {
@@ -366,6 +376,12 @@ export function WorkoutLogger({
                       </button>
                     </div>
                   ))}
+                  <button
+                    onClick={() => handleAddSet(exIdx)}
+                    className="w-full py-2.5 text-xs font-semibold text-slate-400 hover:text-emerald-600 hover:bg-emerald-50/60 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <Plus size={13} /> Add Set
+                  </button>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
@@ -425,6 +441,12 @@ export function WorkoutLogger({
                       </div>
                     )
                   })}
+                  <button
+                    onClick={() => handleAddSet(exIdx)}
+                    className="w-full py-2.5 text-xs font-semibold text-slate-400 hover:text-emerald-600 hover:bg-emerald-50/60 flex items-center justify-center gap-1 transition-colors border-t border-slate-100"
+                  >
+                    <Plus size={13} /> Add Set
+                  </button>
                 </div>
               )}
             </CardContent>

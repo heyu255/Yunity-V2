@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Sparkles, Plus, Pencil, Trash2, Check, X,
@@ -49,6 +50,7 @@ export default function NutritionClient({
   fatsTarget: fatsTargetProp,
   pastLogs = [],
   frequentMeals = [],
+  serverDate,
 }: {
   logId: string
   initialMeals: MealEntry[]
@@ -59,8 +61,20 @@ export default function NutritionClient({
   fatsTarget?: number
   pastLogs?: PastLog[]
   frequentMeals?: FrequentMeal[]
+  serverDate?: string
 }) {
+  const router = useRouter()
   const [meals, setMeals] = useState<MealEntry[]>(initialMeals)
+
+  // Sync to user's local date — server uses UTC which can differ by timezone
+  useEffect(() => {
+    const localDate = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD in local tz
+    if (serverDate && localDate !== serverDate) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('date', localDate)
+      router.replace(url.toString())
+    }
+  }, [serverDate, router])
   const [saving, setSaving] = useState(false)
 
   // Editing state

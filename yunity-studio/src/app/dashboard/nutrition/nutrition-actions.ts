@@ -32,12 +32,12 @@ export type PastLog = {
 
 export type FrequentMeal = MealEntry & { count: number }
 
-export async function getTodayMealLog() {
+export async function getTodayMealLog(date?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = date ?? new Date().toISOString().split('T')[0]
 
   const { data: existing } = await supabase
     .from('meal_logs')
@@ -57,12 +57,12 @@ export async function getTodayMealLog() {
   return created
 }
 
-export async function getPastMealLogs(limit = 30): Promise<PastLog[]> {
+export async function getPastMealLogs(limit = 30, date?: string): Promise<PastLog[]> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = date ?? new Date().toISOString().split('T')[0]
 
   const { data } = await supabase
     .from('meal_logs')

@@ -5,19 +5,24 @@ import NutritionClient from './NutritionClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NutritionPage() {
+interface Props {
+  searchParams: Promise<{ date?: string }>
+}
+
+export default async function NutritionPage({ searchParams }: Props) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const today = new Date().toISOString().split('T')[0]
+  const { date: dateParam } = await searchParams
+  const today = dateParam ?? new Date().toISOString().split('T')[0]
 
   const [profileRes, logRes, burnedRes, pastLogs] = await Promise.all([
     supabase.from('profiles').select('daily_calories_target, goal, protein_target, carbs_target, fats_target').eq('id', user.id).single(),
-    getTodayMealLog(),
+    getTodayMealLog(today),
     supabase.from('workout_logs').select('calories_burned').eq('user_id', user.id).gte('created_at', today),
-    getPastMealLogs(30),
+    getPastMealLogs(30, today),
   ])
 
   if (!profileRes.data) redirect('/onboarding')
@@ -52,6 +57,7 @@ export default async function NutritionPage() {
         fatsTarget={profileRes.data.fats_target ?? undefined}
         pastLogs={pastLogs}
         frequentMeals={frequentMeals}
+        serverDate={today}
       />
     </div>
   )

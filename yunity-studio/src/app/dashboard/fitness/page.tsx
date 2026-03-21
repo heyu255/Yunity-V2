@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { CollapsiblePlan } from '@/components/CollapsiblePlan'
 import { CollapsibleArchive } from '@/components/CollapsibleArchive'
 import { TodayWorkoutCard } from '@/components/TodayWorkoutCard'
-import { Calendar, Zap, Flame } from 'lucide-react'
+import { Calendar, Zap, Flame, Dumbbell } from 'lucide-react'
 
 import { getTodayPlanContext } from './fitness-actions'
 import { getTranslations } from 'next-intl/server'
@@ -136,6 +136,25 @@ export default async function FitnessPage() {
           )}
         </div>
       </header>
+
+      {/* ── Free Workout ─────────────────────────────────── */}
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-500">
+            <Dumbbell size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Free Workout</p>
+            <p className="text-xs text-slate-400">Pick your own exercises</p>
+          </div>
+        </div>
+        <Link
+          href="/dashboard/fitness/workout/free"
+          className="rounded-lg bg-violet-500 hover:bg-violet-600 text-white text-xs font-bold px-4 py-2 transition-colors"
+        >
+          Start
+        </Link>
+      </div>
 
       {/* ── Collapsible Plan ─────────────────────────────── */}
       <CollapsiblePlan
