@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { SidebarNav, BottomNav } from '@/components/NavLinks'
 import { TrialBanner } from '@/components/TrialBanner'
 import { getTrialStatus } from '@/utils/trial'
+import { DateCookieSetter } from '@/components/DateCookieSetter'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -46,6 +47,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* Bottom nav — mobile only */}
       <BottomNav />
+      <DateCookieSetter />
     </div>
   )
 }
