@@ -169,10 +169,10 @@ export function WorkoutLogger({
     }
   }
 
-  function handleAddExercise({ name, sets: numSets, reps, weight, rest }: {
-    name: string; sets: number; reps: string; weight: string; rest: string
+  function handleAddExercise({ name, sets: numSets, reps, weight, rest, type }: {
+    name: string; sets: number; reps: string; weight: string; rest: string; type?: string
   }) {
-    const custom: Exercise = { name, sets: numSets, reps, rest, isCustom: true }
+    const custom: Exercise = { name, sets: numSets, reps, rest, isCustom: true, type }
     setAllExercises(prev => [...prev, custom])
     setLogs(prev => [...prev, {
       name,
@@ -503,8 +503,8 @@ export function WorkoutLogger({
           unit={unit}
           availableExercises={availableExercises}
           alreadyAdded={new Set(allExercises.map(e => e.name.toLowerCase()))}
-          onAdd={(name, sets, reps, weight, rest) => {
-            handleAddExercise({ name, sets: Math.max(1, parseInt(sets) || 3), reps, weight, rest })
+          onAdd={(name, sets, reps, weight, rest, type) => {
+            handleAddExercise({ name, sets: Math.max(1, parseInt(sets) || 3), reps, weight, rest, type })
           }}
           onClose={() => setShowAddForm(false)}
         />
