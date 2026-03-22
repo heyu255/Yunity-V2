@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 
 export type PR = {
   weight: number
@@ -160,7 +161,10 @@ export async function getTodayPlanContext(planDays: any[], dayIndexOverride?: nu
     todayDay = planDays[dayIndexOverride]
   } else {
     const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    const todayName = DAY_NAMES[new Date().getDay()]
+    const cookieStore = await cookies()
+    const localDate = cookieStore.get('yunity_local_date')?.value ?? new Date().toISOString().split('T')[0]
+    const [ly, lm, ld] = localDate.split('-').map(Number)
+    const todayName = DAY_NAMES[new Date(Date.UTC(ly, lm - 1, ld)).getUTCDay()]
     todayDay = planDays.find((d: any) => d.day === todayName)
   }
   if (!todayDay) return null

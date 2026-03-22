@@ -19,12 +19,13 @@ export default async function FitnessPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const today = new Date().toISOString().split('T')[0]
+  const cookieStore = await cookies()
+  const localDate = cookieStore.get('yunity_local_date')?.value ?? new Date().toISOString().split('T')[0]
 
   const [profileRes, workoutsRes, todayLogsRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('workouts').select('id, name, created_at, plan').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
-    supabase.from('workout_logs').select('calories_burned').eq('user_id', user.id).gte('created_at', today),
+    supabase.from('workout_logs').select('calories_burned').eq('user_id', user.id).gte('created_at', localDate),
   ])
 
   const todayCaloriesBurned = (todayLogsRes.data ?? [])
@@ -42,7 +43,6 @@ export default async function FitnessPage() {
   const olderWorkouts = allWorkouts.length > 1 ? allWorkouts.slice(1) : []
 
   // Check if user manually selected a day via the plan picker
-  const cookieStore = await cookies()
   const activeDayCookie = cookieStore.get('yunity_active_day')?.value
   let activeDayIndex: number | undefined
   if (activeDayCookie && latestWorkoutId) {
@@ -59,7 +59,8 @@ export default async function FitnessPage() {
 
   // Find today's day index (override with user selection if present)
   const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const todayName = DAY_NAMES[new Date().getDay()]
+  const [ly, lm, ld] = localDate.split('-').map(Number)
+  const todayName = DAY_NAMES[new Date(Date.UTC(ly, lm - 1, ld)).getUTCDay()]
   const todayDayIndex = activeDayIndex ?? (latestWorkout?.days?.findIndex((d: any) => d.day === todayName) ?? -1)
 
   const canStartToday = todayContext && !todayContext.isRest && todayDayIndex >= 0 && latestWorkoutId
