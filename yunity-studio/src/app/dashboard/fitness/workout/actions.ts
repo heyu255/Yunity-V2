@@ -3,9 +3,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { estimateCaloriesBurned } from '@/lib/calorie-utils'
+import { estimateCaloriesBurned, type SetLog, type ExerciseLog } from '@/lib/calorie-utils'
 
-export type { SetLog, ExerciseLog } from '@/lib/calorie-utils'
+export type { SetLog, ExerciseLog }
 
 export async function logWorkout(
   workoutId: string | null,
