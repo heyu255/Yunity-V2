@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { calculateBMR, calculateDailyCalories } from '@/lib/bmr-utils'
 
 // Handles onboarding form submissions and writes the initial profile.
 export async function completeOnboarding(formData: FormData) {
@@ -17,22 +18,13 @@ export async function completeOnboarding(formData: FormData) {
   const activityLevel = formData.get('activityLevel') as string
   const goal = formData.get('goal') as string
 
-  // 1. Calculate BMR (Mifflin-St Jeor Equation)
-  let bmr = (10 * weight) + (6.25 * height) - (5 * age)
-  bmr = gender === 'male' ? bmr + 5 : bmr - 161
-
-  // 2. Activity Multipliers
-  const multipliers: Record<string, number> = {
-    sedentary: 1.2,
-    light: 1.375,
-    moderate: 1.55,
-    active: 1.725,
+  if (!age || !weight || !height || isNaN(age) || isNaN(weight) || isNaN(height)) {
+    redirect('/error')
   }
-  let calories = Math.round(bmr * (multipliers[activityLevel] || 1.2))
 
-  // 3. Goal Adjustment
-  if (goal === 'lose') calories -= 500
-  if (goal === 'gain') calories += 500
+  // 1–3. Calculate TDEE with goal adjustment (Mifflin-St Jeor)
+  const bmr = calculateBMR(weight, height, age, gender)
+  const calories = calculateDailyCalories(bmr, activityLevel, goal)
 
   // 4. Save to the 'profiles' table we just created
   const { error } = await supabase
