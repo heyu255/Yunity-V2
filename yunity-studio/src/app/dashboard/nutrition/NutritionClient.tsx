@@ -20,6 +20,28 @@ function MacroPill({ label, value, target, color }: { label: string; value: numb
   )
 }
 
+function MacroBar({ label, value, target, barColor, textColor }: { label: string; value: number; target: number; barColor: string; textColor: string }) {
+  const pct = Math.min((value / target) * 100, 100)
+  const over = value > target
+  return (
+    <div className="space-y-1 flex-1 min-w-0">
+      <div className="flex justify-between text-[11px]">
+        <span className={`font-bold ${textColor}`}>{label}</span>
+        <span className="text-slate-400 font-medium">
+          <span className={over ? 'text-red-400 font-bold' : 'text-white font-bold'}>{value}g</span>
+          <span className="opacity-50"> / {target}g</span>
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/10">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${over ? 'bg-red-500' : barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
 function CalorieBar({ eaten, target }: { eaten: number; target: number }) {
   const pct = Math.min((eaten / target) * 100, 100)
   const over = eaten > target
@@ -249,10 +271,10 @@ export default function NutritionClient({
             </div>
           )}
 
-          <div className="flex gap-2 flex-wrap">
-            <MacroPill label="Protein" value={totalProtein} target={proteinTarget} color="bg-blue-500/20 text-blue-300" />
-            <MacroPill label="Carbs" value={totalCarbs} target={carbsTarget} color="bg-amber-500/20 text-amber-300" />
-            <MacroPill label="Fats" value={totalFats} target={fatsTarget} color="bg-rose-500/20 text-rose-300" />
+          <div className="flex gap-4 pt-1">
+            <MacroBar label="Protein" value={totalProtein} target={proteinTarget} barColor="bg-blue-400" textColor="text-blue-300" />
+            <MacroBar label="Carbs" value={totalCarbs} target={carbsTarget} barColor="bg-amber-400" textColor="text-amber-300" />
+            <MacroBar label="Fats" value={totalFats} target={fatsTarget} barColor="bg-rose-400" textColor="text-rose-300" />
           </div>
         </div>
       </header>

@@ -15,19 +15,29 @@ export async function generateMealPlan() {
   // 1. Get user metrics from Supabase
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('daily_calories_target, goal, protein_target, carbs_target, fats_target')
     .eq('id', user.id)
     .single()
 
   if (!profile) return
 
-// Update the prompt inside generateMealPlan()
+  const calories = profile.daily_calories_target ?? 2000
+  const proteinTarget = profile.protein_target ?? Math.round(calories * 0.30 / 4)
+  const carbsTarget = profile.carbs_target ?? Math.round(calories * 0.45 / 4)
+  const fatsTarget = profile.fats_target ?? Math.round(calories * 0.25 / 9)
+
 const prompt = `
-  Act as a professional nutritionist. 
+  Act as a professional nutritionist.
   Create a 1-day meal plan for:
-  - Daily Calorie Target: ${profile.daily_calories_target} kcal
+  - Daily Calorie Target: ${calories} kcal
   - Goal: ${profile.goal}
-  
+  - Protein Target: ${proteinTarget}g
+  - Carbs Target: ${carbsTarget}g
+  - Fats Target: ${fatsTarget}g
+
+  Distribute meals across Breakfast, Morning Snack, Lunch, Afternoon Snack, and Dinner.
+  Ensure the total macros hit the targets above as closely as possible.
+
   Return ONLY a JSON object with this structure:
   {
     "meals": [

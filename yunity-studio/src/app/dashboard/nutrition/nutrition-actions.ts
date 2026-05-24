@@ -110,8 +110,7 @@ Be realistic and accurate based on typical portion sizes.
 Return ONLY a JSON object:
 { "calories": number, "protein": number, "carbs": number, "fats": number }`
 
-  const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  const response = await openaiClient.chat.completions.create({
+  const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
